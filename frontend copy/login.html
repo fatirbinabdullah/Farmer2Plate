@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="কৃষক প্ল্যাটফর্মে লগইন করুন - কৃষক বা ক্রেতা হিসেবে">
+    <title>লগইন — কৃষক</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text">কৃষক</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost active">লগইন</a>
+                <a href="register.html" class="btn btn-primary">রেজিস্টার</a>
+            </div>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <!-- Login Form -->
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Desktop Side Panel -->
+                <div class="auth-side-panel">
+                    <div class="side-panel-content">
+                        <span class="side-logo-icon">🌾</span>
+                        <h2>তাজা ফসল, সরাসরি আপনার হাতে</h2>
+                        <p>কৃষক প্ল্যাটফর্মের মাধ্যমে মধ্যস্বত্বভোগী ছাড়াই সরাসরি কৃষকের কাছ থেকে পণ্য কিনুন বা বিক্রি করুন।</p>
+                    </div>
+                </div>
+
+                <!-- Form Area -->
+                <div class="auth-form-area">
+                    <div class="auth-header">
+                        <span class="logo-icon mobile-only">🌾</span>
+                        <h1>স্বাগতম!</h1>
+                    <p>আপনার অ্যাকাউন্টে লগইন করুন</p>
+                </div>
+                <div class="auth-body">
+                    <!-- Role tabs (Admin option hidden — auto-detected from credentials) -->
+                    <div class="role-tabs">
+                        <button class="role-tab active" data-role="farmer" onclick="switchLoginRole('farmer')">🧑‍🌾 কৃষক</button>
+                        <button class="role-tab" data-role="customer" onclick="switchLoginRole('customer')">🛒 ক্রেতা</button>
+                    </div>
+
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <input type="hidden" id="loginRole" value="farmer">
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="loginPhone">ফোন নম্বর</label>
+                            <input type="text" id="loginPhone" class="form-input" placeholder="01XXXXXXXXX" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="loginPassword">পাসওয়ার্ড</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="loginPassword" class="form-input" placeholder="আপনার পাসওয়ার্ড" required>
+                                <button type="button" class="password-toggle" id="toggleLoginPass" onclick="togglePassword('loginPassword', 'toggleLoginPass')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg btn-full" id="loginSubmitBtn">
+                            লগইন করুন
+                        </button>
+                    </form>
+                </div>
+                <div class="auth-footer">
+                    অ্যাকাউন্ট নেই? <a href="register.html">রেজিস্টার করুন</a>
+                </div>
+            </div> <!-- End auth-form-area -->
+            </div> <!-- End auth-card -->
+        </div> <!-- End auth-container -->
+    </div> <!-- End auth-page -->
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        function switchLoginRole(role) {
+            document.getElementById('loginRole').value = role;
+            document.querySelectorAll('.role-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.role === role);
+            });
+        }
+
+        const ICONS = {
+            eye: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>`,
+            eyeOff: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`
+        };
+
+        function togglePassword(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = ICONS.eyeOff;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = ICONS.eye;
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const selectedRole = document.getElementById('loginRole').value;
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!phone || !password) {
+                Toast.error('সব ফিল্ড পূরণ করুন!');
+                return;
+            }
+
+            setLoading(submitBtn, true);
+
+            try {
+                // Select the correct login endpoint (no admin endpoint — admin goes through farmer)
+                const urlMap = {
+                    farmer: API.FARMER_LOGIN,
+                    customer: API.CUSTOMER_LOGIN,
+                };
+
+                const res = await fetch(urlMap[selectedRole], {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, password }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.detail || 'লগইন ব্যর্থ হয়েছে');
+                }
+
+                const token = data.access_token;
+
+                // Decode token to get the ACTUAL role (could be admin if credentials matched)
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const actualRole = payload.role;
+
+                // Fetch user profile
+                let userData = { name: 'User', role: actualRole };
+                try {
+                    if (actualRole === 'admin') {
+                        userData = { name: 'অ্যাডমিন', role: 'admin' };
+                    } else if (actualRole === 'farmer') {
+                        const profileRes = await fetch(API.FARMER_PROFILE(payload.user_id));
+                        if (profileRes.ok) userData = await profileRes.json();
+                    } else if (actualRole === 'customer') {
+                        const profileRes = await fetch(API.CUSTOMER_PROFILE(payload.user_id));
+                        if (profileRes.ok) userData = await profileRes.json();
+                    }
+                } catch (err) {
+                    console.warn('Could not fetch profile', err);
+                }
+
+                Auth.login(token, { ...userData, role: actualRole });
+                Toast.success('সফলভাবে লগইন হয়েছে!');
+
+                // Redirect based on ACTUAL role from token (not the selected tab)
+                setTimeout(() => {
+                    const dashMap = {
+                        farmer: 'farmer-dashboard.html',
+                        customer: 'customer-dashboard.html',
+                        admin: 'admin-dashboard.html'
+                    };
+                    window.location.href = dashMap[actualRole] || 'index.html';
+                }, 500);
+
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(submitBtn, false);
+            }
+        }
+
+        // Auto-redirect if already logged in
+        if (Auth.isLoggedIn() && !Auth.isTokenExpired()) {
+            const role = Auth.getUserRole();
+            const dashMap = { farmer: 'farmer-dashboard.html', customer: 'customer-dashboard.html', admin: 'admin-dashboard.html' };
+            window.location.href = dashMap[role] || 'index.html';
+        }
+    </script>
+</body>
+</html>

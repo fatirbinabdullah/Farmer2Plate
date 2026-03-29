@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমাদের সম্পর্কে — কৃষক</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text" style="margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; line-height: 1;">কৃষক<span style="font-size: 12px; padding: 0; margin: 0;">Farm to Plate</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+                <a href="about.html" class="nav-link active">আমাদের সম্পর্কে</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">লগইন</a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">রেজিস্টার</a>
+                <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-header">
+                            <span id="dropdownName">User</span>
+                            <span class="dropdown-role" id="dropdownRole">customer</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" id="dashboardLink" class="dropdown-item">ড্যাশবোর্ড</a>
+                        <a href="#" id="profileLink" class="dropdown-item">প্রোফাইল</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" id="logoutBtn">লগআউট</button>
+                    </div>
+                <div class="user-menu hidden" id="userMenu">
+                    <button class="user-avatar" id="userAvatar">
+                        <span id="userInitial">ক</span>
+                    </button>
+                </div>
+            </div>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <!-- About Hero -->
+    <section class="hero" style="min-height:60vh;">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title" style="font-size:2.8rem;">
+                আমাদের <span class="gradient-text">গল্প</span>
+            </h1>
+            <p class="hero-description">
+                কৃষক প্ল্যাটফর্ম তৈরি হয়েছে বাংলাদেশের কৃষকদের সরাসরি ক্রেতাদের সাথে যুক্ত করার স্বপ্ন নিয়ে।
+            </p>
+        </div>
+    </section>
+
+    <!-- Mission -->
+    <section class="features" style="padding-top: 80px;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">আমাদের লক্ষ্য</span>
+                <h2 class="section-title">কৃষক ও ক্রেতার মধ্যে সেতুবন্ধন</h2>
+                <p class="section-description">
+                    আমরা বিশ্বাস করি, মধ্যস্বত্বভোগী সরিয়ে কৃষকদের সরাসরি ক্রেতাদের কাছে পণ্য পৌঁছে দেওয়া সম্ভব।
+                    এতে কৃষক ন্যায্য মূল্য পান, আর ক্রেতারা তাজা পণ্য পান কম মূল্যে।
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #10b981;">🎯</div>
+                    <h3>আমাদের মিশন</h3>
+                    <p>বাংলাদেশের কৃষি খাতকে ডিজিটাল প্ল্যাটফর্মের মাধ্যমে আধুনিকায়ন করা এবং কৃষকদের আয় বৃদ্ধিতে সহায়তা করা।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #8b5cf6;">💡</div>
+                    <h3>আমাদের ভিশন</h3>
+                    <p>একটি ডিজিটাল বাংলাদেশ গড়ে তোলা যেখানে প্রতিটি কৃষক সরাসরি তার পণ্য বিক্রি করতে পারবেন।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #f59e0b;">❤️</div>
+                    <h3>আমাদের মূল্যবোধ</h3>
+                    <p>স্বচ্ছতা, বিশ্বস্ততা, এবং কৃষকদের প্রতি সম্মান — এই তিনটি মূল্যবোধে আমরা কাজ করি।</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">প্রযুক্তি</span>
+                <h2 class="section-title">আমাদের টেক স্ট্যাক</h2>
+            </div>
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number" style="background:linear-gradient(135deg, #009688, #4CAF50);">⚡</div>
+                    <div class="step-content">
+                        <h3>FastAPI</h3>
+                        <p>আধুনিক, উচ্চ-কার্যক্ষম Python ওয়েব ফ্রেমওয়ার্ক</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-number" style="background:linear-gradient(135deg, #2196F3, #03A9F4);">🗄️</div>
+                    <div class="step-content">
+                        <h3>SQLAlchemy</h3>
+                        <p>শক্তিশালী ORM দিয়ে ডাটাবেস পরিচালনা</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-number" style="background:linear-gradient(135deg, #FF9800, #FFC107);">🔐</div>
+                    <div class="step-content">
+                        <h3>JWT Auth</h3>
+                        <p>নিরাপদ JSON Web Token ভিত্তিক অথেন্টিকেশন</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-number" style="background:linear-gradient(135deg, #E91E63, #9C27B0);">🎨</div>
+                    <div class="step-content">
+                        <h3>HTML/CSS/JS</h3>
+                        <p>মডার্ন ও রেসপন্সিভ ফ্রন্টএন্ড ডিজাইন</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <div class="cta-content">
+                    <h2>আজই যোগ দিন!</h2>
+                    <p>কৃষক বা ক্রেতা হিসেবে আমাদের প্ল্যাটফর্মে যোগ দিন এবং সরাসরি সুবিধা পান।</p>
+                    <div class="cta-actions">
+                        <a href="register.html" class="btn btn-light btn-lg">রেজিস্ট্রেশন করুন</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo-icon">🌾</span>
+                    <span class="logo-text">কৃষক</span>
+                    <p>সরাসরি কৃষকের কাছ থেকে আপনার দোরগোড়ায় তাজা পণ্য।</p>
+                </div>
+                <div class="footer-links">
+                    <h4>লিংক</h4>
+                    <a href="index.html">হোম</a>
+                    <a href="products.html">পণ্যসমূহ</a>
+                    <a href="login.html">লগইন</a>
+                </div>
+                <div class="footer-links">
+                    <h4>সাহায্য</h4>
+                    <a href="#">যোগাযোগ</a>
+                    <a href="#">FAQ</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; ২০২৬ কৃষক (Farm2Customer)</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
