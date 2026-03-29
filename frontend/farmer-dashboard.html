@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>কৃষক ড্যাশবোর্ড — কৃষক</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/products.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text">কৃষক</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+            </div>
+            <div class="nav-actions">
+                <div class="user-menu" id="userMenu">
+                    <button class="user-avatar" id="userAvatar"><span id="userInitial">ক</span></button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-header">
+                            <span id="dropdownName">User</span>
+                            <span class="dropdown-role" id="dropdownRole">কৃষক</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="farmer-dashboard.html" class="dropdown-item" id="dashboardLink">📊 ড্যাশবোর্ড</a>
+                        <a href="#profile" class="dropdown-item" id="profileLink" onclick="showSection('profile')">👤 প্রোফাইল</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" id="logoutBtn">🚪 লগআউট</button>
+                    </div>
+                </div>
+            </div>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashSidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-label">মেনু</div>
+                <a href="#overview" class="sidebar-link active" onclick="showSection('overview')" data-section="overview">
+                    <span class="link-icon">📊</span> ওভারভিউ
+                </a>
+                <a href="#products" class="sidebar-link" onclick="showSection('products')" data-section="products">
+                    <span class="link-icon">📦</span> আমার পণ্য
+                </a>
+                <a href="#add-product" class="sidebar-link" onclick="showSection('add-product')" data-section="add-product">
+                    <span class="link-icon">➕</span> পণ্য যোগ করুন
+                </a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-label">অ্যাকাউন্ট</div>
+                <a href="#profile" class="sidebar-link" onclick="showSection('profile')" data-section="profile">
+                    <span class="link-icon">👤</span> প্রোফাইল
+                </a>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="dashboard-content">
+            <!-- Mobile Menu Toggle -->
+            <div class="mobile-dash-header">
+                <h2>কৃষক ড্যাশবোর্ড</h2>
+                <button class="dash-menu-toggle" onclick="toggleDashSidebar()">
+                    <span style="font-size:1.2rem;">☰</span> মেনু
+                </button>
+            </div>
+
+            <!-- Overview Section -->
+            <div id="section-overview" class="dash-section">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🧑‍🌾 কৃষক ড্যাশবোর্ড</h1>
+                        <p class="dashboard-subtitle">আপনার পণ্য ও বিক্রি পরিচালনা করুন</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid" id="farmerStats">
+                    <div class="stat-card">
+                        <div class="stat-card-icon green">📦</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalProducts">0</h3>
+                            <p>মোট পণ্য</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon blue">✅</div>
+                        <div class="stat-card-info">
+                            <h3 id="activeProducts">0</h3>
+                            <p>সক্রিয় পণ্য</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon amber">📊</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalStock">0</h3>
+                            <p>মোট স্টক</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">সাম্প্রতিক পণ্যসমূহ</h2>
+                        <button class="btn btn-primary btn-sm" onclick="showSection('add-product')">➕ নতুন পণ্য</button>
+                    </div>
+                    <div class="panel-body no-padding">
+                        <div id="recentProductsTable"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="section-products" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">📦 আমার পণ্যসমূহ</h1>
+                        <p class="dashboard-subtitle">আপনার তালিকাভুক্ত সকল পণ্য</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showSection('add-product')">➕ পণ্য যোগ করুন</button>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="allProductsTable">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Product Section -->
+            <div id="section-add-product" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title" id="productFormTitle">➕ নতুন পণ্য যোগ করুন</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body">
+                        <form id="productForm" onsubmit="handleProductSubmit(event)">
+                            <input type="hidden" id="editProductId" value="">
+                            <div class="product-form-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="prodName">পণ্যের নাম *</label>
+                                    <input type="text" id="prodName" class="form-input" placeholder="যেমন: টমেটো, আলু" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prodPrice">মূল্য (৳) *</label>
+                                    <input type="number" id="prodPrice" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prodStock">স্টক (পরিমাণ) *</label>
+                                    <input type="number" id="prodStock" class="form-input" placeholder="0" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prodStatus">স্ট্যাটাস</label>
+                                    <select id="prodStatus" class="form-select">
+                                        <option value="available">পাওয়া যাচ্ছে</option>
+                                        <option value="out_of_stock">স্টকে নেই</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label" for="prodDesc">বিবরণ</label>
+                                    <textarea id="prodDesc" class="form-input" placeholder="পণ্যের বিবরণ লিখুন..." rows="3"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">📷 ছবি আপলোড (সর্বোচ্চ ৫টি)</label>
+                                    <div class="image-upload-zone" id="addImageUploadZone">
+                                        <div class="upload-icon">📷</div>
+                                        <div class="upload-text">ছবি ড্র্যাগ করুন অথবা ক্লিক করুন</div>
+                                        <div class="upload-hint">JPEG, PNG, WebP — সর্বোচ্চ ১০MB প্রতিটি</div>
+                                        <input type="file" id="addProductImages" accept="image/*" multiple onchange="previewAddImages(this)">
+                                    </div>
+                                    <div class="image-preview-grid" id="addImagePreviews"></div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:12px;margin-top:8px;">
+                                <button type="submit" class="btn btn-primary btn-lg" id="prodSubmitBtn">পণ্য যোগ করুন</button>
+                                <button type="button" class="btn btn-ghost btn-lg" onclick="resetProductForm()">রিসেট</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div id="section-profile" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">👤 আমার প্রোফাইল</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body" id="profileContent">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">প্রোফাইল আপডেট</h2>
+                    </div>
+                    <div class="panel-body">
+                        <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                            <div class="product-form-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="editName">নাম</label>
+                                    <input type="text" id="editName" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="editFarmName">খামারের নাম</label>
+                                    <input type="text" id="editFarmName" class="form-input">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label" for="editFarmAddress">খামারের ঠিকানা</label>
+                                    <input type="text" id="editFarmAddress" class="form-input">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="profileUpdateBtn">আপডেট করুন</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div class="modal-overlay" id="editProductModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">পণ্য সম্পাদনা</h3>
+                <button class="modal-close" onclick="closeEditModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm" onsubmit="handleProductEdit(event)">
+                    <input type="hidden" id="modalEditId">
+                    <div class="form-group">
+                        <label class="form-label">পণ্যের নাম</label>
+                        <input type="text" id="modalEditName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">মূল্য (৳)</label>
+                        <input type="number" id="modalEditPrice" class="form-input" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">স্টক</label>
+                        <input type="number" id="modalEditStock" class="form-input" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">বিবরণ</label>
+                        <textarea id="modalEditDesc" class="form-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">স্ট্যাটাস</label>
+                        <select id="modalEditStatus" class="form-select">
+                            <option value="available">পাওয়া যাচ্ছে</option>
+                            <option value="out_of_stock">স্টকে নেই</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">📷 পণ্যের ছবি</label>
+                        <div id="modalExistingImages" class="image-preview-grid" style="margin-bottom:12px;"></div>
+                        <div class="image-upload-zone" id="modalImageUploadZone" style="display:none;">
+                            <div class="upload-icon">📷</div>
+                            <div class="upload-text">নতুন ছবি যোগ করুন</div>
+                            <div class="upload-hint">সর্বোচ্চ ৫টি ছবি</div>
+                            <input type="file" id="modalProductImages" accept="image/*" multiple onchange="uploadModalImages(this)">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="modalEditBtn">সংরক্ষণ করুন</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Auth guard
+        if (!Auth.requireAuth(['farmer'])) {
+            // requireAuth will redirect
+        }
+
+        let farmerProducts = [];
+        const farmerId = Auth.getUserId();
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFarmerData();
+            // Check hash for section
+            const hash = window.location.hash.replace('#', '');
+            if (hash) showSection(hash);
+        });
+
+        async function loadFarmerData() {
+            await loadFarmerProducts();
+            loadFarmerProfile();
+        }
+
+        // ===== SECTIONS =====
+        function showSection(section) {
+            document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
+            const target = document.getElementById(`section-${section}`);
+            if (target) target.style.display = 'block';
+            
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-link[data-section="${section}"]`);
+            if (link) link.classList.add('active');
+
+            window.location.hash = section;
+        }
+
+        // ===== PRODUCTS =====
+        async function loadFarmerProducts() {
+            try {
+                // Use admin/products and filter by farmer_id, since there's no farmer-specific product list endpoint
+                const res = await fetch(API.PRODUCT_LIST);
+                const allProducts = await res.json();
+                
+                // Also get all products from admin if farmer has auth
+                // Actually, let's get all products and filter
+                const adminRes = await Auth.authFetch(API.PRODUCT_LIST);
+                const allProds = await adminRes.json();
+                
+                farmerProducts = allProds.filter(p => p.farmer_id === farmerId);
+                
+                updateFarmerStats();
+                renderProductsTable('recentProductsTable', farmerProducts.slice(0, 5));
+                renderProductsTable('allProductsTable', farmerProducts);
+            } catch (err) {
+                console.error('Error loading products:', err);
+                document.getElementById('recentProductsTable').innerHTML = `
+                    <div class="empty-state"><div class="empty-state-icon">📦</div><h3>পণ্য লোড করতে সমস্যা</h3></div>`;
+            }
+        }
+
+        function updateFarmerStats() {
+            document.getElementById('totalProducts').textContent = farmerProducts.length;
+            document.getElementById('activeProducts').textContent = farmerProducts.filter(p => p.status === 'available').length;
+            document.getElementById('totalStock').textContent = farmerProducts.reduce((sum, p) => sum + p.stock, 0);
+        }
+
+        function renderProductsTable(containerId, products) {
+            const container = document.getElementById(containerId);
+            
+            if (products.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <h3>কোনো পণ্য নেই</h3>
+                        <p>নতুন পণ্য যোগ করতে "পণ্য যোগ করুন" বাটনে ক্লিক করুন।</p>
+                        <button class="btn btn-primary btn-sm" onclick="showSection('add-product')">➕ পণ্য যোগ করুন</button>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>পণ্য</th>
+                            <th>মূল্য</th>
+                            <th>স্টক</th>
+                            <th>স্ট্যাটাস</th>
+                            <th>ছবি</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${products.map(p => {
+                            const hasImg = p.images && p.images.length > 0;
+                            const thumb = hasImg 
+                                ? `<img src="${API.PRODUCT_IMAGE(p.images[0].id)}" alt="${p.name}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;">` 
+                                : `<span style="font-size:1.3rem;">${getProductEmoji(p.name)}</span>`;
+                            const imgCount = p.images ? p.images.length : 0;
+                            return `
+                            <tr>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        ${thumb}
+                                        <div>
+                                            <strong>${p.name}</strong>
+                                            <div style="font-size:0.8rem;color:var(--gray-400);">${p.description || ''}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>${formatPrice(p.price)}</strong></td>
+                                <td>${p.stock}</td>
+                                <td><span class="status-badge status-${p.status}">${getStatusBangla(p.status)}</span></td>
+                                <td style="font-size:0.8rem;">📷 ${imgCount}/5</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-ghost btn-sm" onclick="openEditModal(${p.id})">✏️</button>
+                                        <button class="btn btn-ghost btn-sm" onclick="deleteProduct(${p.id})" style="color:var(--danger);">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        let selectedAddFiles = [];
+
+        function previewAddImages(input) {
+            const files = Array.from(input.files);
+            if (selectedAddFiles.length + files.length > 5) {
+                Toast.warning('সর্বোচ্চ ৫টি ছবি যোগ করা যাবে!');
+                return;
+            }
+            selectedAddFiles.push(...files);
+            renderAddPreviews();
+        }
+
+        function renderAddPreviews() {
+            const container = document.getElementById('addImagePreviews');
+            container.innerHTML = selectedAddFiles.map((f, i) => {
+                const url = URL.createObjectURL(f);
+                return `
+                    <div class="image-preview-item">
+                        <img src="${url}" alt="Preview">
+                        <button class="remove-image" onclick="removeAddImage(${i})">✕</button>
+                        <div class="image-pos">${i + 1}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        function removeAddImage(index) {
+            selectedAddFiles.splice(index, 1);
+            renderAddPreviews();
+        }
+
+        // ===== ADD PRODUCT =====
+        async function handleProductSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('prodSubmitBtn');
+            const data = {
+                name: document.getElementById('prodName').value.trim(),
+                description: document.getElementById('prodDesc').value.trim() || null,
+                price: parseFloat(document.getElementById('prodPrice').value),
+                stock: parseInt(document.getElementById('prodStock').value),
+            };
+
+            if (!data.name || !data.price) {
+                Toast.error('পণ্যের নাম ও মূল্য আবশ্যক!');
+                return;
+            }
+
+            setLoading(btn, true);
+            try {
+                // Step 1: Create the product
+                const res = await Auth.authFetch(API.PRODUCT_ADD, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.detail || 'পণ্য যোগ ব্যর্থ');
+
+                // Step 2: Upload images if any
+                if (selectedAddFiles.length > 0) {
+                    const formData = new FormData();
+                    selectedAddFiles.forEach(f => formData.append('files', f));
+
+                    const imgRes = await Auth.authFetch(API.PRODUCT_UPLOAD_IMAGES(result.id), {
+                        method: 'POST',
+                        body: formData,
+                        headers: {} // Let browser set multipart boundary
+                    });
+                    if (!imgRes.ok) {
+                        Toast.warning('পণ্য তৈরি হয়েছে, কিন্তু ছবি আপলোড ব্যর্থ');
+                    }
+                }
+                
+                Toast.success('পণ্য সফলভাবে যোগ হয়েছে! 🎉');
+                resetProductForm();
+                await loadFarmerProducts();
+                showSection('products');
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        function resetProductForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productFormTitle').textContent = '➕ নতুন পণ্য যোগ করুন';
+            document.getElementById('prodSubmitBtn').textContent = 'পণ্য যোগ করুন';
+            selectedAddFiles = [];
+            document.getElementById('addImagePreviews').innerHTML = '';
+        }
+
+        // ===== EDIT PRODUCT MODAL =====
+        function openEditModal(productId) {
+            const product = farmerProducts.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('modalEditId').value = product.id;
+            document.getElementById('modalEditName').value = product.name;
+            document.getElementById('modalEditPrice').value = product.price;
+            document.getElementById('modalEditStock').value = product.stock;
+            document.getElementById('modalEditDesc').value = product.description || '';
+            document.getElementById('modalEditStatus').value = product.status;
+
+            document.getElementById('editProductModal').classList.add('active');
+
+            // Show existing images
+            const imagesContainer = document.getElementById('modalExistingImages');
+            const uploadZone = document.getElementById('modalImageUploadZone');
+            const imgCount = product.images ? product.images.length : 0;
+            
+            if (product.images && product.images.length > 0) {
+                imagesContainer.innerHTML = product.images.map(img => `
+                    <div class="image-preview-item">
+                        <img src="${API.PRODUCT_IMAGE(img.id)}" alt="Product">
+                        <button class="remove-image" onclick="deleteProductImage(${img.id}, ${product.id})">✕</button>
+                        <div class="image-pos">${img.position + 1}</div>
+                    </div>
+                `).join('');
+            } else {
+                imagesContainer.innerHTML = '<p style="color:var(--gray-400);font-size:0.85rem;">কোনো ছবি নেই</p>';
+            }
+
+            // Show upload zone if less than 5 images
+            uploadZone.style.display = imgCount < 5 ? 'block' : 'none';
+        }
+
+        async function deleteProductImage(imageId, productId) {
+            const confirmed = await Modal.confirm('এই ছবি কি স্থায়ীভাবে মুছে ফেলতে চান?', 'ছবি ডিলিট', 'danger');
+            if (!confirmed) return;
+            try {
+                const res = await Auth.authFetch(API.PRODUCT_DELETE_IMAGE(imageId), { method: 'DELETE' });
+                if (!res.ok) throw new Error('ছবি মুছতে ব্যর্থ');
+                Toast.success('ছবি মুছে ফেলা হয়েছে');
+                await loadFarmerProducts();
+                openEditModal(productId);
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        async function uploadModalImages(input) {
+            const productId = document.getElementById('modalEditId').value;
+            const files = Array.from(input.files);
+            if (files.length === 0) return;
+
+            const product = farmerProducts.find(p => p.id == productId);
+            const existingCount = product && product.images ? product.images.length : 0;
+            if (existingCount + files.length > 5) {
+                Toast.warning(`আর সর্বোচ্চ ${5 - existingCount}টি ছবি যোগ করতে পারবেন!`);
+                return;
+            }
+
+            Toast.info('ছবি আপলোড হচ্ছে...');
+            try {
+                const formData = new FormData();
+                files.forEach(f => formData.append('files', f));
+
+                const res = await Auth.authFetch(API.PRODUCT_UPLOAD_IMAGES(productId), {
+                    method: 'POST',
+                    body: formData,
+                    headers: {}
+                });
+                if (!res.ok) throw new Error('ছবি আপলোড ব্যর্থ');
+                Toast.success('ছবি আপলোড সফল! 📷');
+                await loadFarmerProducts();
+                openEditModal(parseInt(productId));
+            } catch (err) {
+                Toast.error(err.message);
+            }
+            input.value = '';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editProductModal').classList.remove('active');
+        }
+
+        async function handleProductEdit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('modalEditBtn');
+            const productId = document.getElementById('modalEditId').value;
+            const data = {
+                name: document.getElementById('modalEditName').value.trim(),
+                price: parseFloat(document.getElementById('modalEditPrice').value),
+                stock: parseInt(document.getElementById('modalEditStock').value),
+                description: document.getElementById('modalEditDesc').value.trim() || null,
+                status: document.getElementById('modalEditStatus').value,
+            };
+
+            setLoading(btn, true);
+            try {
+                const res = await Auth.authFetch(API.PRODUCT_UPDATE(productId), {
+                    method: 'PUT',
+                    body: JSON.stringify(data),
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.detail || 'আপডেট ব্যর্থ');
+
+                Toast.success('পণ্য আপডেট হয়েছে!');
+                closeEditModal();
+                await loadFarmerProducts();
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function deleteProduct(productId) {
+            const confirmed = await Modal.confirm('এই পণ্যটি কি স্থায়ীভাবে মুছে ফেলতে চান?', 'পণ্য ডিলিট', 'danger');
+            if (!confirmed) return;
+
+            try {
+                const res = await Auth.authFetch(API.PRODUCT_DELETE(productId), { method: 'DELETE' });
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || 'মুছতে ব্যর্থ');
+                }
+                Toast.success('পণ্য মুছে ফেলা হয়েছে!');
+                await loadFarmerProducts();
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        // ===== PROFILE =====
+        async function loadFarmerProfile() {
+            try {
+                const res = await fetch(API.FARMER_PROFILE(farmerId));
+                const data = await res.json();
+                if (!res.ok) throw new Error();
+
+                document.getElementById('profileContent').innerHTML = `
+                    <div class="profile-card">
+                        <div class="profile-avatar-lg">${data.name ? data.name.charAt(0) : '?'}</div>
+                        <div class="profile-details">
+                            <h2>${data.name}</h2>
+                            <span class="profile-role">🧑‍🌾 কৃষক</span>
+                            <div class="profile-info-grid">
+                                <div class="profile-info-item">
+                                    <label>📱 ফোন</label>
+                                    <span>${data.phone}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <label>🏡 খামারের নাম</label>
+                                    <span>${data.farm_name || 'N/A'}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <label>📍 খামারের ঠিকানা</label>
+                                    <span>${data.farm_address || 'N/A'}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <label>📦 মোট পণ্য</label>
+                                    <span>${farmerProducts.length}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Fill edit form
+                document.getElementById('editName').value = data.name || '';
+                document.getElementById('editFarmName').value = data.farm_name || '';
+                document.getElementById('editFarmAddress').value = data.farm_address || '';
+            } catch (err) {
+                document.getElementById('profileContent').innerHTML = `<div class="empty-state"><h3>প্রোফাইল লোড ব্যর্থ</h3></div>`;
+            }
+        }
+
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+            const btn = document.getElementById('profileUpdateBtn');
+            const data = {
+                name: document.getElementById('editName').value.trim(),
+                farm_name: document.getElementById('editFarmName').value.trim(),
+                farm_address: document.getElementById('editFarmAddress').value.trim(),
+            };
+
+            setLoading(btn, true);
+            try {
+                const res = await fetch(API.FARMER_UPDATE(farmerId), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.detail || 'আপডেট ব্যর্থ');
+
+                Toast.success('প্রোফাইল আপডেট হয়েছে!');
+                // Update stored user data
+                const user = Auth.getUser();
+                Auth.login(Auth.getToken(), { ...user, ...data });
+                loadFarmerProfile();
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+    </script>
+</body>
+</html>
