@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="কৃষক - Farm2Plate মার্কেটপ্লেস। সরাসরি কৃষকের কাছ থেকে তাজা শাকসবজি ও ফলমূল কিনুন।">
+    <title>কৃষক — Farm2Plate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text" style="margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; line-height: 1;">কৃষক<span style="font-size: 12px; padding: 0; margin: 0;">Farm to Plate</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link active">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+                <a href="about.html" class="nav-link">আমাদের সম্পর্কে</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">লগইন</a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">রেজিস্টার</a>
+                <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-header">
+                            <span id="dropdownName">User</span>
+                            <span class="dropdown-role" id="dropdownRole">customer</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" id="dashboardLink" class="dropdown-item">ড্যাশবোর্ড</a>
+                        <a href="#" id="profileLink" class="dropdown-item">প্রোফাইল</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" id="logoutBtn">লগআউট</button>
+                    </div>
+                <div class="user-menu hidden" id="userMenu">
+                    <button class="user-avatar" id="userAvatar">
+                        <span id="userInitial">ক</span>
+                    </button>
+                </div>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="hero-particles" id="heroParticles"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                সরাসরি কৃষকের কাছ থেকে আপনার দোরগোড়ায়
+            </div>
+            <h1 class="hero-title">
+                তাজা <span class="gradient-text">ফসল</span><br>
+                সরাসরি <span class="gradient-text">কৃষক</span> থেকে
+            </h1>
+            <p class="hero-description">
+                কৃষক প্ল্যাটফর্ম দিয়ে সরাসরি কৃষকের কাছ থেকে তাজা শাকসবজি, ফলমূল এবং কৃষি পণ্য কিনুন।
+                মধ্যস্বত্বভোগী নেই, শুধু বিশ্বস্ত কৃষক ও সন্তুষ্ট ক্রেতা।
+            </p>
+            <div class="hero-actions">
+                <a href="products.html" class="btn btn-primary btn-lg">
+                    <span>পণ্য দেখুন</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="register.html?role=farmer" class="btn btn-outline-light btn-lg">
+                    কৃষক হিসেবে যোগ দিন
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="150">0</span>+
+                    <span class="stat-label">কৃষক</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="500">0</span>+
+                    <span class="stat-label">পণ্য</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="2000">0</span>+
+                    <span class="stat-label">সন্তুষ্ট ক্রেতা</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">কেন কৃষক?</span>
+                <h2 class="section-title">আমাদের প্ল্যাটফর্মের সুবিধাসমূহ</h2>
+                <p class="section-description">কৃষক এবং ক্রেতা উভয়ের জন্য সুবিধাজনক প্ল্যাটফর্ম</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #10b981;">🌱</div>
+                    <h3>তাজা পণ্য</h3>
+                    <p>সরাসরি কৃষকের খামার থেকে আপনার ঘরে, মধ্যস্বত্বভোগী ছাড়াই তাজা পণ্য পান।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #f59e0b;">💰</div>
+                    <h3>ন্যায্য মূল্য</h3>
+                    <p>কৃষকরা সরাসরি বিক্রি করে ভালো দাম পান, ক্রেতারা কম খরচে কিনতে পারেন।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #8b5cf6;">🚚</div>
+                    <h3>হোম ডেলিভারি</h3>
+                    <p>আপনার দেওয়া ঠিকানায় পণ্য পৌঁছে যাবে, কোথাও যেতে হবে না।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #ec4899;">🔒</div>
+                    <h3>নিরাপদ লেনদেন</h3>
+                    <p>JWT সুরক্ষিত প্ল্যাটফর্মে নিশ্চিন্তে কেনাকাটা করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #06b6d4;">📊</div>
+                    <h3>কৃষক ড্যাশবোর্ড</h3>
+                    <p>কৃষকরা সহজেই পণ্য যোগ, এডিট ও মুছতে পারবেন নিজের ড্যাশবোর্ড থেকে।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="--accent: #f43f5e;">📱</div>
+                    <h3>সহজ ব্যবহার</h3>
+                    <p>মোবাইল ফ্রেন্ডলি ইন্টারফেস, যেকোনো ডিভাইস থেকে সহজেই ব্যবহার।</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="howItWorks">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">প্রক্রিয়া</span>
+                <h2 class="section-title">কিভাবে কাজ করে?</h2>
+            </div>
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">১</div>
+                    <div class="step-content">
+                        <h3>রেজিস্ট্রেশন করুন</h3>
+                        <p>কৃষক বা ক্রেতা হিসেবে বিনামূল্যে অ্যাকাউন্ট তৈরি করুন।</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-number">২</div>
+                    <div class="step-content">
+                        <h3>পণ্য ব্রাউজ করুন</h3>
+                        <p>তাজা শাকসবজি, ফলমূল ও অন্যান্য পণ্য দেখুন ও পছন্দ করুন।</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-number">৩</div>
+                    <div class="step-content">
+                        <h3>অর্ডার করুন</h3>
+                        <p>পছন্দের পণ্য কার্টে যোগ করুন এবং ডেলিভারি ঠিকানা দিয়ে অর্ডার করুন।</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-number">৪</div>
+                    <div class="step-content">
+                        <h3>ডেলিভারি পান</h3>
+                        <p>আপনার দোরগোড়ায় তাজা পণ্য পৌঁছে যাবে!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <div class="cta-content">
+                    <h2>আজই শুরু করুন!</h2>
+                    <p>কৃষক হিসেবে আপনার পণ্য বিক্রি করুন, অথবা ক্রেতা হিসেবে তাজা পণ্য কিনুন।</p>
+                    <div class="cta-actions">
+                        <a href="register.html?role=farmer" class="btn btn-light btn-lg">কৃষক রেজিস্ট্রেশন</a>
+                        <a href="register.html?role=customer" class="btn btn-outline-light btn-lg">ক্রেতা রেজিস্ট্রেশন</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo-icon">🌾</span>
+                    <span class="logo-text">কৃষক</span>
+                    <p>সরাসরি কৃষকের কাছ থেকে আপনার দোরগোড়ায় তাজা পণ্য।</p>
+                </div>
+                <div class="footer-links">
+                    <h4>লিংক</h4>
+                    <a href="index.html">হোম</a>
+                    <a href="products.html">পণ্যসমূহ</a>
+                    <a href="login.html">লগইন</a>
+                    <a href="register.html">রেজিস্টার</a>
+                </div>
+                <div class="footer-links">
+                    <h4>সাহায্য</h4>
+                    <a href="#">যোগাযোগ</a>
+                    <a href="#">FAQ</a>
+                    <a href="#">শর্তাবলী</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; ২০২৬ কৃষক (Farm2Customer) — সকল অধিকার সংরক্ষিত</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/landing.js"></script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ক্রেতা ড্যাশবোর্ড — কৃষক</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/products.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text">কৃষক</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+            </div>
+            <div class="nav-actions">
+                <div class="user-menu" id="userMenu">
+                    <button class="user-avatar" id="userAvatar"><span id="userInitial">ক</span></button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-header">
+                            <span id="dropdownName">User</span>
+                            <span class="dropdown-role" id="dropdownRole">ক্রেতা</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="customer-dashboard.html" class="dropdown-item" id="dashboardLink">📊 ড্যাশবোর্ড</a>
+                        <a href="#profile" class="dropdown-item" id="profileLink" onclick="showSection('profile')">👤 প্রোফাইল</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" id="logoutBtn">🚪 লগআউট</button>
+                    </div>
+                </div>
+            </div>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashSidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-label">মেনু</div>
+                <a href="#overview" class="sidebar-link active" onclick="showSection('overview')" data-section="overview">
+                    <span class="link-icon">📊</span> ওভারভিউ
+                </a>
+                <a href="#orders" class="sidebar-link" onclick="showSection('orders')" data-section="orders">
+                    <span class="link-icon">📋</span> আমার অর্ডারসমূহ
+                </a>
+                <a href="#buy-products" class="sidebar-link" onclick="showSection('buy-products')" data-section="buy-products">
+                    <span class="link-icon">🛒</span> পণ্য কিনুন
+                </a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-label">অ্যাকাউন্ট</div>
+                <a href="#profile" class="sidebar-link" onclick="showSection('profile')" data-section="profile">
+                    <span class="link-icon">👤</span> প্রোফাইল
+                </a>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="dashboard-content">
+            <!-- Mobile Menu Toggle -->
+            <div class="mobile-dash-header">
+                <h2>আমার ড্যাশবোর্ড</h2>
+                <button class="dash-menu-toggle" onclick="toggleDashSidebar()">
+                    <span style="font-size:1.2rem;">☰</span> মেনু
+                </button>
+            </div>
+
+            <!-- Overview Section -->
+            <div id="section-overview" class="dash-section">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🛒 ক্রেতা ড্যাশবোর্ড</h1>
+                        <p class="dashboard-subtitle">আপনার অর্ডার ও প্রোফাইল পরিচালনা করুন</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showSection('buy-products')">🛒 পণ্য কিনুন</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-icon blue">📋</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalOrders">0</h3>
+                            <p>মোট অর্ডার</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon amber">⏳</div>
+                        <div class="stat-card-info">
+                            <h3 id="pendingOrders">0</h3>
+                            <p>অপেক্ষমান</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon green">✅</div>
+                        <div class="stat-card-info">
+                            <h3 id="deliveredOrders">0</h3>
+                            <p>ডেলিভারি সম্পন্ন</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon rose">💰</div>
+                        <div class="stat-card-info">
+                            <h3 id="totalSpent">৳0</h3>
+                            <p>মোট খরচ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">সাম্প্রতিক অর্ডার</h2>
+                        <button class="btn btn-ghost btn-sm" onclick="showSection('orders')">সব দেখুন →</button>
+                    </div>
+                    <div class="panel-body no-padding" id="recentOrdersContainer">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="section-orders" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">📋 আমার অর্ডারসমূহ</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="allOrdersContainer">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div id="section-profile" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">👤 আমার প্রোফাইল</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body" id="profileContent">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">প্রোফাইল আপডেট</h2>
+                    </div>
+                    <div class="panel-body">
+                        <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                            <div class="product-form-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="editName">নাম</label>
+                                    <input type="text" id="editName" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="editAddress">ঠিকানা</label>
+                                    <input type="text" id="editAddress" class="form-input">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="profileUpdateBtn">আপডেট করুন</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buy Products Section -->
+            <div id="section-buy-products" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🛍️ পণ্য কিনুন</h1>
+                        <p class="dashboard-subtitle">তাজা সবজি ও ফলমূল সরাসরি কৃষক থেকে</p>
+                    </div>
+                    <div class="search-box" style="width: 300px;">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="form-input" placeholder="পণ্য খুঁজুন..." id="dashProductSearch" oninput="filterDashProducts()">
+                    </div>
+                </div>
+
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding">
+                        <div id="dashProductsLoader" class="page-loader" style="padding: 40px;">
+                            <div class="spinner"></div>
+                            <span style="margin-top: 10px; display:block;">পণ্য লোড হচ্ছে...</span>
+                        </div>
+                        <div class="products-grid" id="dashProductsGrid" style="display:none; padding: 24px; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
+                        <div id="dashProductsEmpty" class="empty-state" style="display:none; padding: 60px 20px;">
+                            <div class="empty-state-icon">📦</div>
+                            <h3>কোনো পণ্য পাওয়া যায়নি</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Floating Cart Button for Dashboard -->
+    <button class="cart-fab" id="cartFab" onclick="toggleCartSidebar()" style="z-index: 1500;">
+        🛒 <span class="cart-count">0</span>
+    </button>
+
+    <!-- Cart Sidebar Integrated -->
+    <div class="cart-sidebar-overlay" id="cartOverlay" onclick="toggleCartSidebar()"></div>
+    <div class="cart-sidebar" id="cartSidebar" style="z-index: 2100;">
+        <div class="cart-header">
+            <h2>🛒 আপনার কার্ট</h2>
+            <button class="modal-close" onclick="toggleCartSidebar()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>সর্বমোট:</span>
+                <span id="cartTotal">৳0.00</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="deliveryAddress">ডেলিভারি ঠিকানা</label>
+                <input type="text" id="deliveryAddress" class="form-input" placeholder="আপনার ঠিকানা লিখুন">
+            </div>
+            <button class="btn btn-primary btn-lg btn-full" onclick="placeOrderFromDash()" id="placeOrderBtn">অর্ডার নিশ্চিত করুন</button>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Auth guard
+        if (!Auth.requireAuth(['customer'])) {}
+
+        let customerOrders = [];
+        const customerId = Auth.getUserId();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCustomerData();
+            const hash = window.location.hash.replace('#', '');
+            if (hash) showSection(hash);
+        });
+
+        function showSection(section) {
+            document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
+            const target = document.getElementById(`section-${section}`);
+            if (target) target.style.display = 'block';
+            
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-link[data-section="${section}"]`);
+            if (link) link.classList.add('active');
+            window.location.hash = section;
+        }
+
+        async function loadCustomerData() {
+            await loadCustomerOrders();
+            loadCustomerProfile();
+            loadDashProducts(); // Load marketplace products
+        }
+
+        // ===== MARKETPLACE (BUY PRODUCTS) =====
+        let allMarketProducts = [];
+        
+        async function loadDashProducts() {
+            const loader = document.getElementById('dashProductsLoader');
+            const grid = document.getElementById('dashProductsGrid');
+            const empty = document.getElementById('dashProductsEmpty');
+
+            try {
+                const res = await fetch(API.PRODUCT_LIST);
+                const data = await res.json();
+                if (!res.ok) throw new Error();
+
+                allMarketProducts = data;
+                loader.style.display = 'none';
+
+                if (data.length === 0) {
+                    empty.style.display = 'block';
+                    grid.style.display = 'none';
+                    return;
+                }
+
+                empty.style.display = 'none';
+                grid.style.display = 'grid';
+                renderDashProducts(data);
+                updateDashCartUI();
+            } catch (err) {
+                loader.innerHTML = `<h3>পণ্য লোড ব্যর্থ</h3>`;
+            }
+        }
+
+        function renderDashProducts(products) {
+            const grid = document.getElementById('dashProductsGrid');
+            grid.innerHTML = products.map(p => {
+                const hasImg = p.images && p.images.length > 0;
+                const thumb = hasImg 
+                    ? `<img src="${API.PRODUCT_IMAGE(p.images[0].id)}" alt="${p.name}" style="height:140px; width:100%; object-fit:cover; border-radius:12px;">`
+                    : `<div style="height:140px; background:var(--gray-50); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:3rem;">${getProductEmoji(p.name)}</div>`;
+
+                return `
+                    <div class="product-card" style="margin:0; box-shadow:var(--shadow-sm); border:1px solid var(--gray-100); background:white;">
+                        <div style="position:relative;">
+                            ${thumb}
+                            <div style="position:absolute; top:8px; right:8px;">
+                                <span class="status-badge status-${p.status}" style="font-size:0.7rem;">${getStatusBangla(p.status)}</span>
+                            </div>
+                        </div>
+                        <div style="padding:12px;">
+                            <h4 style="font-size:1rem; margin-bottom:4px; font-weight:700;">${p.name}</h4>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                                <span style="font-weight:700; color:var(--primary-600);">${formatPrice(p.price)}</span>
+                                <span style="font-size:0.75rem; color:var(--gray-500);">স্টক: ${p.stock}</span>
+                            </div>
+                            <button class="btn btn-primary btn-sm btn-full" style="margin-top:12px;" onclick="addFromDash(${p.id})" ${p.stock <= 0 ? 'disabled' : ''}>
+                                🛒 কার্টে যোগ করুন
+                            </button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function filterDashProducts() {
+            const query = document.getElementById('dashProductSearch').value.toLowerCase();
+            const filtered = allMarketProducts.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.description && p.description.toLowerCase().includes(query))
+            );
+            renderDashProducts(filtered);
+            document.getElementById('dashProductsEmpty').style.display = filtered.length === 0 ? 'block' : 'none';
+            document.getElementById('dashProductsGrid').style.display = filtered.length === 0 ? 'none' : 'grid';
+        }
+
+        function addFromDash(productId) {
+            const product = allMarketProducts.find(p => p.id === productId);
+            if (product) {
+                Cart.addItem(product);
+                updateDashCartUI();
+            }
+        }
+
+        function toggleCartSidebar() {
+            document.getElementById('cartSidebar').classList.toggle('open');
+            document.getElementById('cartOverlay').classList.toggle('open');
+            if (document.getElementById('cartSidebar').classList.contains('open')) {
+                renderDashCartItems();
+            }
+        }
+
+        function updateDashCartUI() {
+            const count = Cart.getCount();
+            document.querySelectorAll('.cart-count').forEach(el => {
+                el.textContent = count;
+                el.parentElement.style.display = count > 0 ? 'flex' : 'none';
+            });
+        }
+
+        function renderDashCartItems() {
+            const container = document.getElementById('cartItems');
+            const items = Cart.getItems();
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="padding:40px;"><div class="empty-state-icon">🛒</div><p>কার্ট খালি</p></div>`;
+                document.getElementById('cartTotal').textContent = '৳0.00';
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="cart-item" style="padding:12px; border-bottom:1px solid var(--gray-100); display:flex; gap:12px; align-items:center;">
+                    <div style="width:50px; height:50px; background:var(--gray-50); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">${getProductEmoji(item.name)}</div>
+                    <div style="flex:1;">
+                        <h5 style="margin:0; font-size:0.9rem;">${item.name}</h5>
+                        <div style="color:var(--primary-600); font-weight:600; font-size:0.85rem;">${formatPrice(item.price)}</div>
+                    </div>
+                    <div class="cart-item-qty" style="display:flex; align-items:center; gap:8px;">
+                        <button class="btn btn-ghost btn-xs" onclick="updateDashQty(${item.product_id}, -1)" style="padding:2px 8px;">−</button>
+                        <span>${item.quantity}</span>
+                        <button class="btn btn-ghost btn-xs" onclick="updateDashQty(${item.product_id}, 1)" style="padding:2px 8px;">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('cartTotal').textContent = formatPrice(Cart.getTotal());
+        }
+
+        function updateDashQty(productId, delta) {
+            Cart.updateQuantity(productId, delta);
+            updateDashCartUI();
+            renderDashCartItems();
+        }
+
+        async function placeOrderFromDash() {
+            const items = Cart.getItems();
+            if (items.length === 0) {
+                Toast.warning('কার্ট খালি!');
+                return;
+            }
+
+            const address = document.getElementById('deliveryAddress').value.trim();
+            if (!address) {
+                Toast.error('ডেলিভারি ঠিকানা দিন!');
+                return;
+            }
+
+            const confirmed = await Modal.confirm('আপনি কি এই অর্ডারটি নিশ্চিত করতে চান?', 'অর্ডার ভেরিফিকেশন');
+            if (!confirmed) return;
+
+            const btn = document.getElementById('placeOrderBtn');
+            setLoading(btn, true);
+
+            try {
+                const res = await Auth.authFetch(API.ORDER_PLACE, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+                        delivery_address: address
+                    })
+                });
+
+                if (!res.ok) throw new Error('অর্ডার করতে সমস্যা হয়েছে');
+
+                Toast.success('অর্ডার সফল হয়েছে! 🎉');
+                Cart.clear();
+                toggleCartSidebar();
+                updateDashCartUI();
+                loadCustomerOrders(); // Refresh order history
+                showSection('orders');
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        // ===== ORDERS =====
+        async function loadCustomerOrders() {
+            try {
+                const res = await Auth.authFetch(API.ORDER_MY_ORDERS);
+                const data = await res.json();
+                if (!res.ok) throw new Error();
+
+                customerOrders = data;
+                updateCustomerStats();
+                renderOrdersTable('recentOrdersContainer', data.slice(0, 5));
+                renderOrdersTable('allOrdersContainer', data);
+            } catch (err) {
+                document.getElementById('recentOrdersContainer').innerHTML = `
+                    <div class="empty-state"><div class="empty-state-icon">📋</div><h3>অর্ডার লোড ব্যর্থ</h3></div>`;
+            }
+        }
+
+        function updateCustomerStats() {
+            document.getElementById('totalOrders').textContent = customerOrders.length;
+            document.getElementById('pendingOrders').textContent = customerOrders.filter(o => o.status === 'pending').length;
+            document.getElementById('deliveredOrders').textContent = customerOrders.filter(o => o.status === 'delivered').length;
+            const totalSpent = customerOrders.reduce((sum, o) => sum + o.total_price, 0);
+            document.getElementById('totalSpent').textContent = formatPrice(totalSpent);
+        }
+
+        function renderOrdersTable(containerId, orders) {
+            const container = document.getElementById(containerId);
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>কোনো অর্ডার নেই</h3>
+                        <p>আপনি এখনো কোনো অর্ডার করেননি।</p>
+                        <a href="products.html" class="btn btn-primary btn-sm">🛒 পণ্য কিনুন</a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>অর্ডার #</th>
+                            <th>পণ্য</th>
+                            <th>মোট মূল্য</th>
+                            <th>ডেলিভারি ঠিকানা</th>
+                            <th>স্ট্যাটাস</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(o => `
+                            <tr>
+                                <td><strong>#${o.id}</strong></td>
+                                <td>${o.items.length}টি আইটেম</td>
+                                <td><strong>${formatPrice(o.total_price)}</strong></td>
+                                <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">${o.delivery_address || 'N/A'}</td>
+                                <td><span class="status-badge status-${o.status}">${getStatusBangla(o.status)}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        // ===== PROFILE =====
+        async function loadCustomerProfile() {
+            try {
+                const res = await fetch(API.CUSTOMER_PROFILE(customerId));
+                const data = await res.json();
+                if (!res.ok) throw new Error();
+
+                document.getElementById('profileContent').innerHTML = `
+                    <div class="profile-card">
+                        <div class="profile-avatar-lg">${data.name ? data.name.charAt(0) : '?'}</div>
+                        <div class="profile-details">
+                            <h2>${data.name}</h2>
+                            <span class="profile-role">🛒 ক্রেতা</span>
+                            <div class="profile-info-grid">
+                                <div class="profile-info-item">
+                                    <label>📱 ফোন</label>
+                                    <span>${data.phone}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <label>📍 ঠিকানা</label>
+                                    <span>${data.address || 'N/A'}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <label>📋 মোট অর্ডার</label>
+                                    <span>${customerOrders.length}</span>
+                                </div>
+                                <div class="profile-info-item">
+                                    <label>💰 মোট খরচ</label>
+                                    <span>${formatPrice(customerOrders.reduce((s,o) => s + o.total_price, 0))}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                document.getElementById('editName').value = data.name || '';
+                document.getElementById('editAddress').value = data.address || '';
+            } catch (err) {
+                document.getElementById('profileContent').innerHTML = `<div class="empty-state"><h3>প্রোফাইল লোড ব্যর্থ</h3></div>`;
+            }
+        }
+
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+            const btn = document.getElementById('profileUpdateBtn');
+            const data = {
+                name: document.getElementById('editName').value.trim(),
+                address: document.getElementById('editAddress').value.trim(),
+            };
+
+            setLoading(btn, true);
+            try {
+                const res = await fetch(API.CUSTOMER_UPDATE(customerId), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.detail || 'আপডেট ব্যর্থ');
+
+                Toast.success('প্রোফাইল আপডেট হয়েছে!');
+                const user = Auth.getUser();
+                Auth.login(Auth.getToken(), { ...user, ...data });
+                loadCustomerProfile();
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+    </script>
+</body>
+</html>
