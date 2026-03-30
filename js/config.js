@@ -1,6 +1,6 @@
 // ===== API CONFIGURATION (এপিআই লিংক সেটিং) =====
 // const API_BASE_URL = 'http://localhost:8000';
-const API_BASE_URL = 'http://192.168.1.7:8000'; // ব্যাকএন্ডের ঠিকানা
+const API_BASE_URL = 'https://backend-farmer2plate.onrender.com'; // ব্যাকএন্ডের ঠিকানা
 
 // All type of API List for easy to use not to type again and again
 const API = {
