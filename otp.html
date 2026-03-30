@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ইমেইল ভেরিফিকেশন — কৃষক">
+    <title>ভেরিফিকেশন — কৃষক</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <style>
+        .otp-input-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 28px 0;
+        }
+        .otp-box {
+            width: 52px;
+            height: 64px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            background: var(--gray-50);
+            transition: all var(--transition-fast);
+            color: var(--gray-800);
+        }
+        .otp-box:focus {
+            border-color: var(--primary-500);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-50);
+            outline: none;
+        }
+        .email-display {
+            font-weight: 700;
+            color: var(--primary-700);
+            word-break: break-all;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 480px) {
+            .otp-box {
+                width: 42px;
+                height: 54px;
+                font-size: 22px;
+            }
+            .otp-input-container {
+                gap: 8px;
+            }
+        }
+        
+        .resend-timer {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text">কৃষক</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost">লগইন</a>
+                <a href="register.html" class="btn btn-primary">রেজিস্টার</a>
+            </div>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Desktop Side Panel -->
+                <div class="auth-side-panel">
+                    <div class="side-panel-content">
+                        <span class="side-logo-icon">📧</span>
+                        <h2>আপনার অ্যাকাউন্ট যাচাই করুন</h2>
+                        <p>আপনার ইমেইলটি নিরাপদ কি না তা নিশ্চিত করতে আমরা একটি গোপন কোড পাঠিয়েছি। কোডটি দিয়ে অ্যাকাউন্টটি সক্রিয় করুন।</p>
+                    </div>
+                </div>
+
+                <!-- Form Area -->
+                <div class="auth-form-area">
+                    <div class="auth-header">
+                        <span class="logo-icon mobile-only">📧</span>
+                        <h1>কোডটি লিখুন</h1>
+                        <p>আপনার নিচের ইমেইল ঠিকানায় কোডটি পাঠানো হয়েছে:</p>
+                        <span id="displayEmail" class="email-display">...</span>
+                    </div>
+
+                    <div class="auth-body">
+                        <form id="otpForm" onsubmit="handleVerify(event)">
+                            <div class="otp-input-container">
+                                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" required autofocus>
+                                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" required>
+                                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" required>
+                                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" required>
+                                <input type="text" class="otp-box" maxlength="1" inputmode="numeric" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg btn-full" id="verifyBtn">
+                                কোড যাচাই করুন
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="auth-footer">
+                        কোড পাননি? <a href="#" id="resendBtn" onclick="resendOTP()">আবার পাঠান</a>
+                        <div class="resend-timer" id="timer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const role = urlParams.get('role') || 'farmer';
+
+        if (!email) {
+            window.location.href = 'register.html';
+        }
+
+        document.getElementById('displayEmail').innerText = email;
+
+        // OTP inputs logic
+        const inputs = document.querySelectorAll('.otp-box');
+        inputs.forEach((input, index) => {
+            // Typing number
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length > 0 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            // Direct paste
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const data = e.clipboardData.getData('text').trim();
+                if (data.length === 5 && !isNaN(data)) {
+                    for (let i = 0; i < 5; i++) {
+                        inputs[i].value = data[i];
+                    }
+                    inputs[4].focus();
+                }
+            });
+        });
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('verifyBtn');
+            const otpCode = Array.from(inputs).map(i => i.value).join('');
+
+            if (otpCode.length < 5) {
+                Toast.error('পুরো কোডটি লিখুন!');
+                return;
+            }
+
+            // Get registration data from sessionStorage
+            const pendingReg = JSON.parse(sessionStorage.getItem('pending_registration'));
+            if (!pendingReg || pendingReg.email !== email) {
+                Toast.error('রেজিস্ট্রেশন ডাটা পাওয়া যায়নি! আবার ট্রাই করুন।');
+                setTimeout(() => window.location.href = 'register.html', 2000);
+                return;
+            }
+
+            setLoading(submitBtn, true);
+
+            try {
+                // Final registration URL
+                const url = role === 'farmer' ? API.FARMER_REGISTER : API.CUSTOMER_REGISTER;
+                
+                // Combine stored data with OTP
+                const fullBody = { ...pendingReg, otp: otpCode };
+                
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fullBody)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'রজিস্ট্রেশন ব্যর্থ হয়েছে');
+
+                // Success! Clear temporary store
+                sessionStorage.removeItem('pending_registration');
+
+                Toast.success('রেজিস্ট্রেশন সফল হয়েছে! এখন লগইন করুন।');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                setLoading(submitBtn, false);
+            }
+        }
+
+        let timeLeft = 0;
+        async function resendOTP() {
+            if (timeLeft > 0) return;
+            
+            const otpUrl = role === 'farmer' ? API.FARMER_REQUEST_OTP : API.CUSTOMER_REQUEST_OTP;
+            
+            Toast.info('আবার কোড পাঠানো হচ্ছে...');
+            
+            try {
+                const res = await fetch(otpUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }),
+                });
+
+                if (!res.ok) throw new Error('কোড পাঠাতে ব্যর্থ হয়েছে');
+
+                timeLeft = 60;
+                const resendBtn = document.getElementById('resendBtn');
+                const timerDiv = document.getElementById('timer');
+                
+                resendBtn.style.opacity = '0.5';
+                resendBtn.style.pointerEvents = 'none';
+
+                const countdown = setInterval(() => {
+                    timeLeft--;
+                    timerDiv.innerText = `${timeLeft} সেকেন্ড পরে আবার ট্রাই করুন`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        timerDiv.innerText = '';
+                        resendBtn.style.opacity = '1';
+                        resendBtn.style.pointerEvents = 'auto';
+                    }
+                }, 1000);
+                
+                Toast.success('আপনার ইমেইলে নতুন কোড পাঠানো হয়েছে।');
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+    </script>
+</body>
+</html>

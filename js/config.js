@@ -1,6 +1,6 @@
 // ===== API CONFIGURATION (এপিআই লিংক সেটিং) =====
 // const API_BASE_URL = 'http://localhost:8000';
-const API_BASE_URL = 'http://192.168.1.4:8000'; // ব্যাকএন্ডের ঠিকানা
+const API_BASE_URL = 'http://192.168.1.7:8000'; // ব্যাকএন্ডের ঠিকানা
 
 // All type of API List for easy to use not to type again and again
 const API = {
@@ -10,6 +10,7 @@ const API = {
     FARMER_PROFILE: (id) => `${API_BASE_URL}/farmer/profile/${id}`,
     FARMER_UPDATE: (id) => `${API_BASE_URL}/farmer/update/${id}`,
     FARMER_DELETE: (id) => `${API_BASE_URL}/farmer/delete/${id}`,
+    FARMER_REQUEST_OTP: `${API_BASE_URL}/farmer/request-otp`,
 
     // Customer API
     CUSTOMER_REGISTER: `${API_BASE_URL}/customer/register`,
@@ -17,6 +18,7 @@ const API = {
     CUSTOMER_PROFILE: (id) => `${API_BASE_URL}/customer/profile/${id}`,
     CUSTOMER_UPDATE: (id) => `${API_BASE_URL}/customer/update/${id}`,
     CUSTOMER_DELETE: (id) => `${API_BASE_URL}/customer/delete/${id}`,
+    CUSTOMER_REQUEST_OTP: `${API_BASE_URL}/customer/request-otp`,
 
     // Admin API
     ADMIN_LOGIN: `${API_BASE_URL}/admin/login`,
@@ -26,6 +28,7 @@ const API = {
     ADMIN_PRODUCTS: `${API_BASE_URL}/admin/products`,
     ADMIN_DELETE_PRODUCT: (id) => `${API_BASE_URL}/admin/product/${id}`,
     ADMIN_ORDERS: `${API_BASE_URL}/admin/orders`,
+    ADMIN_UPDATE_ORDER_STATUS: (id) => `${API_BASE_URL}/admin/order/${id}/status`,
 
     // প্রোডাক্টের জন্য API
     PRODUCT_ADD: `${API_BASE_URL}/product/add`,
