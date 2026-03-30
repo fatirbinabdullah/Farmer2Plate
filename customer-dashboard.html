@@ -1,16 +1,172 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ক্রেতা ড্যাশবোর্ড — কৃষক</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/products.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* Customer map styles */
+        .cust-map {
+            width: 100%;
+            height: 260px;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200, #e5e7eb);
+            margin-top: 8px;
+            z-index: 1;
+        }
+
+        .map-search-wrap {
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .map-search-wrap input {
+            width: 100%;
+            padding: 9px 38px 9px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: var(--bg-elevated, #fff);
+            color: var(--gray-800);
+            outline: none;
+            transition: border 0.2s;
+            box-sizing: border-box;
+        }
+
+        .map-search-wrap input:focus {
+            border-color: var(--primary-500, #22c55e);
+        }
+
+        .map-search-wrap .search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--gray-400);
+        }
+
+        .map-hint {
+            font-size: 0.78rem;
+            color: var(--gray-400);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .map-gps-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 7px;
+            color: #3b82f6;
+            font-size: 0.83rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .map-gps-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .map-address-tag {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            background: var(--gray-50);
+            border: 1px solid var(--gray-100);
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* Cart map */
+        #cartDeliveryMap {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+            margin-top: 8px;
+            z-index: 1;
+        }
+
+        /* Payment method selector */
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 2px solid var(--gray-200, #e5e7eb);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-elevated, #fff);
+        }
+
+        .payment-option:hover {
+            border-color: var(--primary-400, #34d399);
+            background: var(--primary-50, #ecfdf5);
+        }
+
+        .payment-option input[type=radio] {
+            accent-color: var(--primary-500, #22c55e);
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .payment-option.selected {
+            border-color: var(--primary-500, #22c55e);
+            background: var(--primary-50, #ecfdf5);
+        }
+
+        .payment-option-icon {
+            font-size: 1.4rem;
+        }
+
+        .payment-option-info {
+            flex: 1;
+        }
+
+        .payment-option-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--gray-800);
+        }
+
+        .payment-option-sub {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 1px;
+        }
+    </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
@@ -33,7 +189,8 @@
                         </div>
                         <div class="dropdown-divider"></div>
                         <a href="customer-dashboard.html" class="dropdown-item" id="dashboardLink">📊 ড্যাশবোর্ড</a>
-                        <a href="#profile" class="dropdown-item" id="profileLink" onclick="showSection('profile')">👤 প্রোফাইল</a>
+                        <a href="#profile" class="dropdown-item" id="profileLink" onclick="showSection('profile')">👤
+                            প্রোফাইল</a>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item logout" id="logoutBtn">🚪 লগআউট</button>
                     </div>
@@ -48,13 +205,15 @@
         <aside class="dashboard-sidebar" id="dashSidebar">
             <div class="sidebar-section">
                 <div class="sidebar-label">মেনু</div>
-                <a href="#overview" class="sidebar-link active" onclick="showSection('overview')" data-section="overview">
+                <a href="#overview" class="sidebar-link active" onclick="showSection('overview')"
+                    data-section="overview">
                     <span class="link-icon">📊</span> ওভারভিউ
                 </a>
                 <a href="#orders" class="sidebar-link" onclick="showSection('orders')" data-section="orders">
                     <span class="link-icon">📋</span> আমার অর্ডারসমূহ
                 </a>
-                <a href="#buy-products" class="sidebar-link" onclick="showSection('buy-products')" data-section="buy-products">
+                <a href="#buy-products" class="sidebar-link" onclick="showSection('buy-products')"
+                    data-section="buy-products">
                     <span class="link-icon">🛒</span> পণ্য কিনুন
                 </a>
             </div>
@@ -123,7 +282,9 @@
                         <button class="btn btn-ghost btn-sm" onclick="showSection('orders')">সব দেখুন →</button>
                     </div>
                     <div class="panel-body no-padding" id="recentOrdersContainer">
-                        <div class="page-loader"><div class="spinner"></div></div>
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -137,7 +298,9 @@
                 </div>
                 <div class="dashboard-panel">
                     <div class="panel-body no-padding" id="allOrdersContainer">
-                        <div class="page-loader"><div class="spinner"></div></div>
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -151,7 +314,9 @@
                 </div>
                 <div class="dashboard-panel">
                     <div class="panel-body" id="profileContent">
-                        <div class="page-loader"><div class="spinner"></div></div>
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="dashboard-panel">
@@ -169,6 +334,23 @@
                                     <label class="form-label" for="editAddress">ঠিকানা</label>
                                     <input type="text" id="editAddress" class="form-input">
                                 </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">📍 ম্যাপে আপনার অবস্থান পিন করুন</label>
+                                    <div class="map-search-wrap">
+                                        <input type="text" id="profMapSearch"
+                                            placeholder="এলাকা বা ঠিকানা লিখে খুঁজুন..."
+                                            oninput="profMapSearchDebounce()">
+                                        <button type="button" class="search-clear"
+                                            onclick="clearProfMapSearch()">×</button>
+                                    </div>
+                                    <div class="cust-map" id="profileMap"></div>
+                                    <div class="map-hint">👆 ম্যাপে ক্লিক করে পিন সেট করুন</div>
+                                    <button type="button" class="map-gps-btn" onclick="profMapLocateMe()">📡 আমার
+                                        বর্তমান অবস্থান</button>
+                                    <div class="map-address-tag" id="profMapAddressTag"></div>
+                                    <input type="hidden" id="editLatitude">
+                                    <input type="hidden" id="editLongitude">
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary" id="profileUpdateBtn">আপডেট করুন</button>
                         </form>
@@ -185,7 +367,8 @@
                     </div>
                     <div class="search-box" style="width: 300px;">
                         <span class="search-icon">🔍</span>
-                        <input type="text" class="form-input" placeholder="পণ্য খুঁজুন..." id="dashProductSearch" oninput="filterDashProducts()">
+                        <input type="text" class="form-input" placeholder="পণ্য খুঁজুন..." id="dashProductSearch"
+                            oninput="filterDashProducts()">
                     </div>
                 </div>
 
@@ -195,7 +378,9 @@
                             <div class="spinner"></div>
                             <span style="margin-top: 10px; display:block;">পণ্য লোড হচ্ছে...</span>
                         </div>
-                        <div class="products-grid" id="dashProductsGrid" style="display:none; padding: 24px; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
+                        <div class="products-grid" id="dashProductsGrid"
+                            style="display:none; padding: 24px; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+                        </div>
                         <div id="dashProductsEmpty" class="empty-state" style="display:none; padding: 60px 20px;">
                             <div class="empty-state-icon">📦</div>
                             <h3>কোনো পণ্য পাওয়া যায়নি</h3>
@@ -224,20 +409,59 @@
                 <span>সর্বমোট:</span>
                 <span id="cartTotal">৳0.00</span>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="deliveryAddress">ডেলিভারি ঠিকানা</label>
-                <input type="text" id="deliveryAddress" class="form-input" placeholder="আপনার ঠিকানা লিখুন">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="deliveryAddress">📍 ডেলিভারি ঠিকানা</label>
+                <input type="text" id="deliveryAddress" class="form-input"
+                    placeholder="ম্যাপ থেকে সিলেক্ট করুন বা সরাসরি লিখুন">
+                <div class="map-search-wrap" style="margin-top:6px;">
+                    <input type="text" id="cartMapSearch" placeholder="সার্চ করুন বা পিন দিন..."
+                        oninput="cartMapSearchDebounce()">
+                    <button type="button" class="search-clear" onclick="clearCartMapSearch()">×</button>
+                </div>
+                <div id="cartDeliveryMap"></div>
+                <div class="map-hint">👆 ম্যাপে ক্লিক করলে ঠিকানা আপনাআপনি ফিল হবে</div>
+
             </div>
-            <button class="btn btn-primary btn-lg btn-full" onclick="placeOrderFromDash()" id="placeOrderBtn">অর্ডার নিশ্চিত করুন</button>
+            <!-- Payment Method -->
+            <div class="form-group" style="margin-bottom:0;margin-top:10px;">
+                <label class="form-label">💳 পেমেন্ট পদ্ধতি</label>
+                <div class="payment-methods">
+                    <label class="payment-option selected" id="pmCOD" onclick="selectPayment('cod')">
+                        <input type="radio" name="paymentMethod" value="cod" checked>
+                        <span class="payment-option-icon">💵</span>
+                        <div class="payment-option-info">
+                            <div class="payment-option-title">ক্যাশ অন ডেলিভারি (COD)</div>
+                            <div class="payment-option-sub">ডেলিভারির সময় নগদে পায়</div>
+                        </div>
+                        <span
+                            style="font-size:0.75rem;font-weight:700;color:var(--primary-600);background:var(--primary-100,#d1fae5);padding:2px 8px;border-radius:999px;">সার্ভিস
+                            আছে</span>
+                    </label>
+                    <label class="payment-option" id="pmCard" onclick="selectPayment('card')"
+                        style="opacity:0.5;cursor:not-allowed;">
+                        <input type="radio" name="paymentMethod" value="card" disabled>
+                        <span class="payment-option-icon">💳</span>
+                        <div class="payment-option-info">
+                            <div class="payment-option-title">কার্ড / মোবাইল ব্যাংলিং</div>
+                            <div class="payment-option-sub">শীঘ্রই আসছে...</div>
+                        </div>
+                        <span
+                            style="font-size:0.75rem;font-weight:700;color:var(--gray-400);background:var(--gray-100);padding:2px 8px;border-radius:999px;">অনুপলব্ধ</span>
+                    </label>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-lg btn-full" onclick="placeOrderFromDash()" id="placeOrderBtn"
+                style="margin-top:14px;">অর্ডার নিশ্চিত করুন</button>
         </div>
     </div>
 
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Auth guard
-        if (!Auth.requireAuth(['customer'])) {}
+        if (!Auth.requireAuth(['customer'])) { }
 
         let customerOrders = [];
         const customerId = Auth.getUserId();
@@ -252,7 +476,7 @@
             document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
             const target = document.getElementById(`section-${section}`);
             if (target) target.style.display = 'block';
-            
+
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
             const link = document.querySelector(`.sidebar-link[data-section="${section}"]`);
             if (link) link.classList.add('active');
@@ -267,7 +491,7 @@
 
         // ===== MARKETPLACE (BUY PRODUCTS) =====
         let allMarketProducts = [];
-        
+
         async function loadDashProducts() {
             const loader = document.getElementById('dashProductsLoader');
             const grid = document.getElementById('dashProductsGrid');
@@ -300,7 +524,7 @@
             const grid = document.getElementById('dashProductsGrid');
             grid.innerHTML = products.map(p => {
                 const hasImg = p.images && p.images.length > 0;
-                const thumb = hasImg 
+                const thumb = hasImg
                     ? `<img src="${API.PRODUCT_IMAGE(p.images[0].id)}" alt="${p.name}" style="height:140px; width:100%; object-fit:cover; border-radius:12px;">`
                     : `<div style="height:140px; background:var(--gray-50); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:3rem;">${getProductEmoji(p.name)}</div>`;
 
@@ -328,8 +552,8 @@
 
         function filterDashProducts() {
             const query = document.getElementById('dashProductSearch').value.toLowerCase();
-            const filtered = allMarketProducts.filter(p => 
-                p.name.toLowerCase().includes(query) || 
+            const filtered = allMarketProducts.filter(p =>
+                p.name.toLowerCase().includes(query) ||
                 (p.description && p.description.toLowerCase().includes(query))
             );
             renderDashProducts(filtered);
@@ -408,7 +632,9 @@
                 return;
             }
 
-            const confirmed = await Modal.confirm('আপনি কি এই অর্ডারটি নিশ্চিত করতে চান?', 'অর্ডার ভেরিফিকেশন');
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'cod';
+            const paymentLabel = paymentMethod === 'cod' ? '💵 ক্যাশ অন ডেলিভারি' : 'ব্যাংলিং';
+            const confirmed = await Modal.confirm(`পেমেন্ট: ${paymentLabel}\n\nআপনি কি এই অর্ডারটি নিশ্চিত করতে চান?`, 'অর্ডার ভেরিফিকেশন');
             if (!confirmed) return;
 
             const btn = document.getElementById('placeOrderBtn');
@@ -419,7 +645,8 @@
                     method: 'POST',
                     body: JSON.stringify({
                         items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
-                        delivery_address: address
+                        delivery_address: address,
+                        payment_method: paymentMethod
                     })
                 });
 
@@ -505,7 +732,7 @@
         // ===== PROFILE =====
         async function loadCustomerProfile() {
             try {
-                const res = await fetch(API.CUSTOMER_PROFILE(customerId));
+                const res = await Auth.authFetch(API.CUSTOMER_PROFILE(customerId));
                 const data = await res.json();
                 if (!res.ok) throw new Error();
 
@@ -521,6 +748,10 @@
                                     <span>${data.phone}</span>
                                 </div>
                                 <div class="profile-info-item">
+                                    <label>📧 ইমেইল</label>
+                                    <span>${data.email}</span>
+                                </div>
+                                <div class="profile-info-item">
                                     <label>📍 ঠিকানা</label>
                                     <span>${data.address || 'N/A'}</span>
                                 </div>
@@ -530,7 +761,7 @@
                                 </div>
                                 <div class="profile-info-item">
                                     <label>💰 মোট খরচ</label>
-                                    <span>${formatPrice(customerOrders.reduce((s,o) => s + o.total_price, 0))}</span>
+                                    <span>${formatPrice(customerOrders.reduce((s, o) => s + o.total_price, 0))}</span>
                                 </div>
                             </div>
                         </div>
@@ -538,6 +769,14 @@
 
                 document.getElementById('editName').value = data.name || '';
                 document.getElementById('editAddress').value = data.address || '';
+                document.getElementById('editLatitude').value = data.latitude || '';
+                document.getElementById('editLongitude').value = data.longitude || '';
+
+                // Init profile map
+                initProfMap(
+                    data.latitude ? parseFloat(data.latitude) : null,
+                    data.longitude ? parseFloat(data.longitude) : null
+                );
             } catch (err) {
                 document.getElementById('profileContent').innerHTML = `<div class="empty-state"><h3>প্রোফাইল লোড ব্যর্থ</h3></div>`;
             }
@@ -546,16 +785,19 @@
         async function handleProfileUpdate(e) {
             e.preventDefault();
             const btn = document.getElementById('profileUpdateBtn');
+            const lat = document.getElementById('editLatitude').value.trim();
+            const lng = document.getElementById('editLongitude').value.trim();
             const data = {
                 name: document.getElementById('editName').value.trim(),
                 address: document.getElementById('editAddress').value.trim(),
+                latitude: lat || null,
+                longitude: lng || null,
             };
 
             setLoading(btn, true);
             try {
-                const res = await fetch(API.CUSTOMER_UPDATE(customerId), {
+                const res = await Auth.authFetch(API.CUSTOMER_UPDATE(customerId), {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),
                 });
                 const result = await res.json();
@@ -571,6 +813,160 @@
                 setLoading(btn, false);
             }
         }
+
+        // ========== PROFILE MAP ==========
+        let profMap = null, profMarker = null;
+
+        function initProfMap(lat, lng) {
+            const hasCoords = lat && lng;
+            const centerLat = hasCoords ? lat : 23.8103;
+            const centerLng = hasCoords ? lng : 90.4125;
+            const zoom = hasCoords ? 15 : 7;
+
+            if (profMap) { profMap.remove(); profMap = null; profMarker = null; }
+
+            profMap = L.map('profileMap').setView([centerLat, centerLng], zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(profMap);
+
+            if (hasCoords) {
+                profMarker = L.marker([centerLat, centerLng], { icon: custIcon() }).addTo(profMap);
+                profMarker.bindPopup('🏡 আপনার সেট করা অবস্থান').openPopup();
+                showProfAddress(centerLat, centerLng);
+            }
+
+            profMap.on('click', e => setProfPin(e.latlng.lat, e.latlng.lng));
+            setTimeout(() => profMap.invalidateSize(), 300);
+        }
+
+        function custIcon() {
+            return L.divIcon({ className: '', html: `<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 3px 10px rgba(34,197,94,.5);border:2px solid #fff;">📍</div>`, iconSize: [30, 30], iconAnchor: [15, 30] });
+        }
+
+        function setProfPin(lat, lng) {
+            if (profMarker) profMarker.setLatLng([lat, lng]);
+            else { profMarker = L.marker([lat, lng], { icon: custIcon() }).addTo(profMap); }
+            profMarker.bindPopup('🏡 আপনার অবস্থান').openPopup();
+            document.getElementById('editLatitude').value = lat.toFixed(6);
+            document.getElementById('editLongitude').value = lng.toFixed(6);
+            profMap.flyTo([lat, lng], 16, { duration: 0.7 });
+            showProfAddress(lat, lng);
+        }
+
+        async function showProfAddress(lat, lng) {
+            const tag = document.getElementById('profMapAddressTag');
+            tag.style.display = 'block';
+            tag.textContent = '🔄 ঠিকানা খোঁজা হচ্ছে...';
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=bn`);
+                const d = await r.json();
+                tag.textContent = '📍 ' + (d.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+            } catch { tag.textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`; }
+        }
+
+        async function profMapSearchDebounce() {
+            clearTimeout(window._profSearchTimer);
+            window._profSearchTimer = setTimeout(profMapSearch, 700);
+        }
+
+        async function profMapSearch() {
+            const q = document.getElementById('profMapSearch').value.trim();
+            if (!q) return;
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=bn`);
+                const results = await r.json();
+                if (results.length > 0) {
+                    const { lat, lon } = results[0];
+                    setProfPin(parseFloat(lat), parseFloat(lon));
+                } else { Toast.warning('অবস্থান পাওয়া যায়নি'); }
+            } catch { Toast.error('সার্চ ব্যর্থ'); }
+        }
+
+        function clearProfMapSearch() { document.getElementById('profMapSearch').value = ''; }
+
+        function profMapLocateMe() {
+            if (!navigator.geolocation) { Toast.error('ব্রাউজার সাপোর্ট করে না'); return; }
+            Toast.info('অবস্থান খোঁজা হচ্ছে...');
+            navigator.geolocation.getCurrentPosition(
+                p => { setProfPin(p.coords.latitude, p.coords.longitude); Toast.success('অবস্থান পাওয়া গেছে! 📍'); },
+                () => Toast.error('পারমিশন দিন অথবা ম্যাপে ক্লিক করুন'),
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // Re-init map when profile tab becomes visible
+        const _origShowSection = showSection;
+        showSection = function (section) {
+            _origShowSection(section);
+            if (section === 'profile' && profMap) setTimeout(() => profMap.invalidateSize(), 200);
+        };
+
+        // ========== CART DELIVERY MAP ==========
+        let cartMap = null, cartMarker = null;
+        let cartMapReady = false;
+
+        function initCartMap() {
+            if (cartMap) return;
+            cartMap = L.map('cartDeliveryMap').setView([23.8103, 90.4125], 7);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(cartMap);
+            cartMap.on('click', e => setCartPin(e.latlng.lat, e.latlng.lng, true));
+            cartMapReady = true;
+            setTimeout(() => cartMap.invalidateSize(), 200);
+        }
+
+        // Override toggleCartSidebar to init map
+        const _origToggleCart = toggleCartSidebar;
+        toggleCartSidebar = function () {
+            _origToggleCart();
+            const isOpen = document.getElementById('cartSidebar').classList.contains('open');
+            if (isOpen) setTimeout(initCartMap, 250);
+        };
+
+        function setCartPin(lat, lng, reverseGeocode) {
+            const icon = L.divIcon({ className: '', html: `<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 3px 10px rgba(59,130,246,.5);border:2px solid #fff;">📦</div>`, iconSize: [28, 28], iconAnchor: [14, 28] });
+            if (cartMarker) cartMarker.setLatLng([lat, lng]);
+            else { cartMarker = L.marker([lat, lng], { icon }).addTo(cartMap); }
+            cartMap.flyTo([lat, lng], 16, { duration: 0.7 });
+            if (reverseGeocode) fillCartAddress(lat, lng);
+        }
+
+        async function fillCartAddress(lat, lng) {
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=bn`);
+                const d = await r.json();
+                if (d.display_name) document.getElementById('deliveryAddress').value = d.display_name;
+            } catch { }
+        }
+
+        async function cartMapSearchDebounce() {
+            clearTimeout(window._cartSearchTimer);
+            window._cartSearchTimer = setTimeout(cartMapSearch, 700);
+        }
+
+        async function cartMapSearch() {
+            const q = document.getElementById('cartMapSearch').value.trim();
+            if (!q) return;
+            if (!cartMapReady) initCartMap();
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=bn`);
+                const results = await r.json();
+                if (results.length > 0) {
+                    const { lat, lon, display_name } = results[0];
+                    setCartPin(parseFloat(lat), parseFloat(lon), false);
+                    document.getElementById('deliveryAddress').value = display_name;
+                } else { Toast.warning('অবস্থান পাওয়া যায়নি'); }
+            } catch { Toast.error('সার্চ ব্যর্থ'); }
+        }
+
+        function clearCartMapSearch() { document.getElementById('cartMapSearch').value = ''; }
+
+        function selectPayment(method) {
+            // Only COD is available for now
+            if (method !== 'cod') return;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            const target = method === 'cod' ? document.getElementById('pmCOD') : null;
+            if (target) target.classList.add('selected');
+        }
     </script>
 </body>
+
 </html>

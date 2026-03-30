@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অ্যাডমিন ড্যাশবোর্ড — কৃষক</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .stat-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--primary-400); }
+        .chart-container-panel { opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+        .chart-container-panel.show { opacity: 1; transform: translateY(0); display: block !important; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--gray-200); }
+
+        /* Product detail modal */
+        .product-row-clickable { cursor: pointer; transition: background 0.15s; }
+        .product-row-clickable:hover { background: var(--gray-50) !important; }
+
+        .detail-modal-body { padding: 0; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .detail-left { padding: 24px; background: var(--bg-secondary, #f9fafb); border-right: 1px solid var(--gray-100); }
+        .detail-right { padding: 24px; }
+
+        .detail-carousel { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; background: var(--gray-100); margin-bottom: 16px; }
+        .detail-carousel img { width: 100%; height: 100%; object-fit: cover; }
+        .detail-carousel .no-img { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; background: linear-gradient(135deg, var(--primary-50), var(--gray-100)); }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; border: none; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 2; }
+        .carousel-btn:hover { background: rgba(0,0,0,0.7); }
+        .carousel-btn.prev { left: 8px; }
+        .carousel-btn.next { right: 8px; }
+        .carousel-dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+        .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-300); border: none; cursor: pointer; transition: all 0.2s; padding: 0; }
+        .carousel-dot.active { background: var(--primary-500); width: 20px; border-radius: 4px; }
+
+        .detail-section { margin-bottom: 20px; }
+        .detail-section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray-50); }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label { font-size: 0.85rem; color: var(--gray-500); }
+        .detail-value { font-size: 0.9rem; font-weight: 600; color: var(--gray-800); text-align: right; max-width: 60%; }
+        .detail-price { font-size: 1.3rem; font-weight: 800; color: var(--primary-700); font-family: var(--font-en); }
+        .detail-product-name { font-size: 1.25rem; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+        .detail-desc { font-size: 0.9rem; color: var(--gray-500); line-height: 1.5; }
+
+        .farmer-card {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px; border-radius: 10px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.06), rgba(16,185,129,0.04));
+            border: 1px solid rgba(34,197,94,0.15);
+        }
+        .farmer-card-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--gradient-primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: 700; flex-shrink: 0;
+        }
+        .farmer-card-info { flex: 1; min-width: 0; }
+        .farmer-card-name { font-weight: 700; font-size: 0.95rem; color: var(--gray-800); }
+        .farmer-card-meta { font-size: 0.8rem; color: var(--gray-500); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        @media (max-width: 768px) {
+            .detail-grid { grid-template-columns: 1fr; }
+            .detail-left { border-right: none; border-bottom: 1px solid var(--gray-100); }
+        }
+
+        /* User detail modal */
+        .user-row-clickable { cursor: pointer; transition: background 0.15s; }
+        .user-row-clickable:hover { background: var(--gray-50) !important; }
+        .user-detail-header { display:flex; align-items:center; gap:18px; padding:24px; border-bottom:1px solid var(--gray-100); }
+        .user-detail-avatar { width:64px; height:64px; border-radius:50%; background:var(--gradient-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:700; flex-shrink:0; }
+        .user-detail-name { font-size:1.2rem; font-weight:700; color:var(--gray-800); }
+        .user-detail-role { display:inline-block; padding:3px 10px; border-radius:999px; font-size:0.75rem; font-weight:600; margin-top:4px; }
+        .user-detail-role.farmer { background:#dcfce7; color:#15803d; }
+        .user-detail-role.customer { background:#dbeafe; color:#1d4ed8; }
+        .user-detail-body { display:grid; grid-template-columns:1fr 1fr; }
+        .user-detail-col { padding:20px 24px; }
+        .user-detail-col:first-child { border-right:1px solid var(--gray-100); }
+        .user-detail-section-title { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--gray-400); margin-bottom:10px; }
+        .user-detail-item { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--gray-50); }
+        .user-detail-item:last-child { border-bottom:none; }
+        .user-detail-lbl { font-size:0.83rem; color:var(--gray-500); }
+        .user-detail-val { font-size:0.87rem; font-weight:600; color:var(--gray-800); text-align:right; max-width:55%; word-break:break-all; }
+        #adminUserMap { width:100%; height:220px; border-radius:10px; border:1px solid var(--gray-200); margin-top:10px; }
+        .user-action-bar { padding:16px 24px; border-top:1px solid var(--gray-100); display:flex; gap:10px; justify-content:flex-end; }
+        @media(max-width:600px) { .user-detail-body { grid-template-columns:1fr; } .user-detail-col:first-child { border-right:none; border-bottom:1px solid var(--gray-100); } }
+
+        /* Order detail modal */
+        .order-row-clickable { cursor:pointer; transition:background .15s; }
+        .order-row-clickable:hover { background:var(--gray-50) !important; }
+        .order-items-list { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+        .order-item-row { display:flex; align-items:center; gap:12px; padding:10px; border-radius:8px; background:var(--gray-50,#f9fafb); border:1px solid var(--gray-100); }
+        .order-item-emoji { font-size:1.6rem; flex-shrink:0; }
+        .order-item-info { flex:1; min-width:0; }
+        .order-item-name { font-weight:600; font-size:0.9rem; }
+        .order-item-meta { font-size:0.78rem; color:var(--gray-500); margin-top:2px; }
+        .order-item-price { font-weight:700; font-size:0.95rem; color:var(--primary-700); white-space:nowrap; }
+        .order-summary-box { background:linear-gradient(135deg,rgba(34,197,94,.07),rgba(16,185,129,.04)); border:1px solid rgba(34,197,94,.15); border-radius:10px; padding:16px 20px; margin-top:16px; }
+        .order-summary-row { display:flex; justify-content:space-between; padding:5px 0; font-size:0.9rem; }
+        .order-summary-row.total { font-weight:800; font-size:1.05rem; color:var(--primary-700); border-top:1px solid rgba(34,197,94,.2); padding-top:10px; margin-top:5px; }
+
+        /* Admin farmer location map */
+        #adminFarmerMap {
+            width: 100%; height: 200px;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200, #e5e7eb);
+            margin-top: 12px;
+            z-index: 1;
+        }
+        .map-no-location {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; height: 80px;
+            border-radius: 10px;
+            background: var(--gray-50, #f9fafb);
+            border: 1px dashed var(--gray-200, #e5e7eb);
+            color: var(--gray-400);
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌾</span>
+                <span class="logo-text">কৃষক</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="nav-link">হোম</a>
+                <a href="products.html" class="nav-link">পণ্যসমূহ</a>
+            </div>
+            <div class="nav-actions">
+                <div class="user-menu" id="userMenu">
+                    <button class="user-avatar" id="userAvatar"><span id="userInitial">A</span></button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-header">
+                            <span id="dropdownName">Admin</span>
+                            <span class="dropdown-role" id="dropdownRole">অ্যাডমিন</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="admin-dashboard.html" class="dropdown-item" id="dashboardLink">📊 ড্যাশবোর্ড</a>
+                        <a href="#" class="dropdown-item" id="profileLink">👤 প্রোফাইল</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" id="logoutBtn">🚪 লগআউট</button>
+                    </div>
+                </div>
+            </div>
+            <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashSidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-label">অ্যাডমিন প্যানেল</div>
+                <a href="#overview" class="sidebar-link active" onclick="showSection('overview')" data-section="overview">
+                    <span class="link-icon">📊</span> ওভারভিউ
+                </a>
+                <a href="#farmers" class="sidebar-link" onclick="showSection('farmers')" data-section="farmers">
+                    <span class="link-icon">🧑‍🌾</span> সকল কৃষক
+                </a>
+                <a href="#customers" class="sidebar-link" onclick="showSection('customers')" data-section="customers">
+                    <span class="link-icon">🛒</span> সকল ক্রেতা
+                </a>
+                <a href="#products" class="sidebar-link" onclick="showSection('products')" data-section="products">
+                    <span class="link-icon">📦</span> পণ্যসমূহ
+                </a>
+                <a href="#orders" class="sidebar-link" onclick="showSection('orders')" data-section="orders">
+                    <span class="link-icon">📋</span> অর্ডারসমূহ
+                </a>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="dashboard-content">
+            <!-- Mobile Menu Toggle -->
+            <div class="mobile-dash-header">
+                <h2>অ্যাডমিন ড্যাশবোর্ড</h2>
+                <button class="dash-menu-toggle" onclick="toggleDashSidebar()">
+                    <span style="font-size:1.2rem;">☰</span> মেনু
+                </button>
+            </div>
+
+            <!-- Overview -->
+            <div id="section-overview" class="dash-section">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🔑 অ্যাডমিন ড্যাশবোর্ড</h1>
+                        <p class="dashboard-subtitle">সিস্টেম ওভারভিউ ও পরিচালনা</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" onclick="showStatsChart('users')">
+                        <div class="stat-card-icon blue">👥</div>
+                        <div class="stat-card-info">
+                            <h3 id="statTotalUsers">0</h3>
+                            <p>মোট ব্যবহারকারী</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showStatsChart('farmers')">
+                        <div class="stat-card-icon green">🧑‍🌾</div>
+                        <div class="stat-card-info">
+                            <h3 id="statFarmers">0</h3>
+                            <p>কৃষক</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showStatsChart('customers')">
+                        <div class="stat-card-icon blue">🛒</div>
+                        <div class="stat-card-info">
+                            <h3 id="statCustomers">0</h3>
+                            <p>ক্রেতা</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showStatsChart('products')">
+                        <div class="stat-card-icon amber">📦</div>
+                        <div class="stat-card-info">
+                            <h3 id="statProducts">0</h3>
+                            <p>মোট পণ্য</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showStatsChart('orders')">
+                        <div class="stat-card-icon rose">📋</div>
+                        <div class="stat-card-info">
+                            <h3 id="statOrders">0</h3>
+                            <p>মোট অর্ডার</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Panel -->
+                <div class="dashboard-panel chart-container-panel" id="statsChartPanel" style="margin-top: 24px; display: none;">
+                    <div class="panel-header">
+                        <h2 class="panel-title" id="chartTitle">পরিসংখ্যান প্রতিবেদন</h2>
+                        <div style="display:flex; gap: 8px; align-items: center;">
+                            <select id="chartPeriod" class="form-select btn-sm" style="width: auto; padding: 4px 32px 4px 12px; height: 32px; font-size: 0.85rem;" onchange="updateChartPeriod()">
+                                <option value="week">এই সপ্তাহ</option>
+                                <option value="month" selected>এই মাস</option>
+                                <option value="year">এই বছর</option>
+                            </select>
+                            <button class="btn btn-ghost btn-sm" onclick="hideStatsChart()">✕</button>
+                        </div>
+                    </div>
+                    <div class="panel-body" style="padding: 24px; height: 350px;">
+                        <canvas id="statsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farmers Section -->
+            <div id="section-farmers" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🧑‍🌾 সকল কৃষক</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="farmersTable">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Section -->
+            <div id="section-customers" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🛒 সকল ক্রেতা</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="customersTable">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="section-products" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">📦 সকল পণ্য</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="adminProductsTable">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="section-orders" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">📋 সকল অর্ডার</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-header" style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap;padding:14px 20px;">
+                        <div class="search-box" style="flex:1;">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="form-input" placeholder="অর্ডার / ক্রেতা / ঠিকানা খুঁজুন..." id="orderSearchInput" oninput="filterOrders()" style="padding-left:36px;">
+                        </div>
+                        <select class="form-select" id="orderStatusFilter" onchange="filterOrders()" style="width:170px;flex-shrink:0;padding:11px 14px;">
+                            <option value="">📌 সব স্ট্যাটাস</option>
+                            <option value="pending">⏳ অপেক্ষমান</option>
+                            <option value="accepted">✅ গৃহীত</option>
+                            <option value="shipped">🚚 প্রেরিত</option>
+                            <option value="delivered">🏡 ডেলিভারি সম্পন্ন</option>
+                        </select>
+                    </div>
+                    <div class="panel-body no-padding" id="adminOrdersTable">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div class="modal-overlay" id="productDetailModal" onclick="closeDetailModal()">
+        <div class="modal" style="max-width:740px;width:95%;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title" id="detailModalTitle">📦 পণ্যের বিস্তারিত</h3>
+                <button class="modal-close" onclick="closeDetailModal()">✕</button>
+            </div>
+            <div class="detail-modal-body" id="detailModalBody">
+                <div class="page-loader"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </div>
+    <!-- User Detail Modal -->
+    <div class="modal-overlay" id="userDetailModal" onclick="closeUserModal()">
+        <div class="modal" style="max-width:680px;width:95%;padding:0;overflow-y:auto;max-height:88vh;" onclick="event.stopPropagation()">
+            <div id="userDetailContent">
+                <div class="page-loader" style="padding:60px;"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderDetailModal" onclick="closeOrderModal()">
+        <div class="modal" style="max-width:560px;width:95%;padding:0;overflow-y:auto;max-height:88vh;" onclick="event.stopPropagation()">
+            <div id="orderDetailContent">
+                <div class="page-loader" style="padding:50px;"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Auth guard
+        if (!Auth.requireAuth(['admin'])) {}
+
+        let allUsers = [], allProducts = [], allOrders = [];
+        let currentChart = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminData();
+            const hash = window.location.hash.replace('#', '');
+            if (hash) showSection(hash);
+        });
+
+        // Chart Logic
+        let activeStatsType = 'users';
+
+        function showStatsChart(type) {
+            activeStatsType = type;
+            const period = document.getElementById('chartPeriod').value;
+            const panel = document.getElementById('statsChartPanel');
+            const titleEl = document.getElementById('chartTitle');
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            
+            panel.classList.add('show');
+            if (currentChart) currentChart.destroy();
+
+            // Config mappings
+            const titles = { users: 'ব্যবহারকারী বৃদ্ধি', farmers: 'কৃষক সংখ্যা বৃদ্ধি', customers: 'ক্রেতা সংখ্যা বৃদ্ধি', products: 'পণ্য যোগ হওয়ার ট্রেন্ড', orders: 'অর্ডার বৃদ্ধির ট্রেন্ড' };
+            const colors = { users: '#3b82f6', farmers: '#10b981', customers: '#6366f1', products: '#f59e0b', orders: '#f43f5e' };
+            
+            let sourceData = [];
+            if (type === 'users') sourceData = allUsers;
+            else if (type === 'farmers') sourceData = allUsers.filter(u => u.role === 'farmer');
+            else if (type === 'customers') sourceData = allUsers.filter(u => u.role === 'customer');
+            else if (type === 'products') sourceData = allProducts;
+            else if (type === 'orders') sourceData = allOrders;
+
+            // Period config
+            let labels = [];
+            let dataPoints = [];
+            
+            const now = new Date();
+            
+            if (period === 'week') {
+                labels = ['শনিবার', 'রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার'];
+                dataPoints = new Array(7).fill(0);
+                
+                // Helper mapping for Bangla days
+                const dayMap = [1, 2, 3, 4, 5, 6, 0]; // Sun=0...Sat=6 in JS
+                const banglaDayIndices = [6, 0, 1, 2, 3, 4, 5]; // Sat, Sun, Mon...
+
+                sourceData.forEach(item => {
+                    if (item.created_at) {
+                        const d = new Date(item.created_at);
+                        const diff = (now - d) / (1000 * 60 * 60 * 24);
+                        if (diff <= 7) {
+                            const dayIdx = d.getDay();
+                            const banglaIdx = banglaDayIndices.indexOf(dayIdx);
+                            if (banglaIdx !== -1) dataPoints[banglaIdx]++;
+                        }
+                    }
+                });
+                
+                // Cumulative sum to show "growth"
+                for(let i=1; i<dataPoints.length; i++) dataPoints[i] += dataPoints[i-1];
+                
+            } else if (period === 'month') {
+                labels = ['৩০ দিন আগে', '২৫ দিন আগে', '২০ দিন আগে', '১৫ দিন আগে', '১০ দিন আগে', '৫ দিন আগে', 'আজ'];
+                dataPoints = new Array(7).fill(0);
+                
+                sourceData.forEach(item => {
+                    if (item.created_at) {
+                        const d = new Date(item.created_at);
+                        const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+                        if (diff <= 30) {
+                            const bucket = Math.floor((30 - diff) / 5);
+                            if (bucket >= 0 && bucket < 7) dataPoints[bucket]++;
+                        }
+                    }
+                });
+                for(let i=1; i<dataPoints.length; i++) dataPoints[i] += dataPoints[i-1];
+                
+            } else { // year
+                labels = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'];
+                dataPoints = new Array(12).fill(0);
+                
+                sourceData.forEach(item => {
+                    if (item.created_at) {
+                        const d = new Date(item.created_at);
+                        if (d.getFullYear() === now.getFullYear()) {
+                            dataPoints[d.getMonth()]++;
+                        }
+                    }
+                });
+                for(let i=1; i<dataPoints.length; i++) dataPoints[i] += dataPoints[i-1];
+            }
+
+            titleEl.textContent = titles[type];
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: titles[type],
+                        data: dataPoints,
+                        borderColor: colors[type],
+                        backgroundColor: colors[type] + '20',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: colors[type],
+                        pointRadius: period === 'year' ? 3 : 5,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function updateChartPeriod() {
+            showStatsChart(activeStatsType);
+        }
+
+        function hideStatsChart() {
+            document.getElementById('statsChartPanel').classList.remove('show');
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
+            const target = document.getElementById(`section-${section}`);
+            if (target) target.style.display = 'block';
+            
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-link[data-section="${section}"]`);
+            if (link) link.classList.add('active');
+            window.location.hash = section;
+        }
+
+        async function loadAdminData() {
+            try {
+                const [usersRes, productsRes, ordersRes] = await Promise.all([
+                    Auth.authFetch(API.ADMIN_USERS),
+                    Auth.authFetch(API.ADMIN_PRODUCTS),
+                    Auth.authFetch(API.ADMIN_ORDERS),
+                ]);
+
+                allUsers = await usersRes.json();
+                allProducts = await productsRes.json();
+                allOrders = await ordersRes.json();
+
+                updateAdminStats();
+                renderUsersTable(allUsers.filter(u => u.role === 'farmer'), 'farmersTable');
+                renderUsersTable(allUsers.filter(u => u.role === 'customer'), 'customersTable');
+                renderAdminProductsTable();
+                renderAdminOrdersTable();
+            } catch (err) {
+                Toast.error('ডেটা লোড ব্যর্থ হয়েছে');
+            }
+        }
+
+        function updateAdminStats() {
+            document.getElementById('statTotalUsers').textContent = allUsers.length;
+            document.getElementById('statFarmers').textContent = allUsers.filter(u => u.role === 'farmer').length;
+            document.getElementById('statCustomers').textContent = allUsers.filter(u => u.role === 'customer').length;
+            document.getElementById('statProducts').textContent = allProducts.length;
+            document.getElementById('statOrders').textContent = allOrders.length;
+        }
+
+        // ===== USERS TABLE (Generic) =====
+        function renderUsersTable(users, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (users.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>কোনো ব্যবহারকারী নেই</h3></div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>নাম</th>
+                            <th>ফোন</th>
+                            <th>রোল</th>
+                            <th>স্ট্যাটাস</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(u => {
+                            const roleMap = { farmer: '🧑‍🌾 কৃষক', customer: '🛒 ক্রেতা', admin: '🔑 অ্যাডমিন' };
+                            return `
+                            <tr class="user-row-clickable" onclick="showUserDetail(${u.id})">
+                                <td>#${u.id}</td>
+                                <td><strong>${u.name}</strong></td>
+                                <td>${u.phone}</td>
+                                <td>${roleMap[u.role] || u.role}</td>
+                                <td><span class="status-badge ${u.is_active ? 'status-available' : 'status-out_of_stock'}">${u.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); toggleUserStatus(${u.id}, ${u.is_active})" title="${u.is_active ? 'Freeze' : 'Unfreeze'}" ${u.role === 'admin' ? 'disabled' : ''}>
+                                            ${u.is_active ? '🔴' : '🟢'}
+                                        </button>
+                                        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); deleteUser(${u.id})" style="color:var(--danger);" ${u.role === 'admin' ? 'disabled' : ''}>🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        async function deleteUser(userId) {
+            const verification = await Modal.prompt(
+                'আপনি কি নিশ্চিত যে এই ব্যবহারকারীকে স্থায়ীভাবে মুছে ফেলতে চান? এটি পুনরায় ফিরে পাওয়া সম্ভব নয়।\n "YES" লিখুন অ্যাকাউন্ট ডিলিট করার জন্য',
+                'YES',
+                'অ্যাকাউন্ট ডিলিট➡️'
+            );
+            
+            if (verification !== 'YES') return;
+
+            try {
+                const res = await Auth.authFetch(API.ADMIN_DELETE_USER(userId), { method: 'DELETE' });
+                if (!res.ok) throw new Error('মুছতে ব্যর্থ');
+                Toast.success('ব্যবহারকারী মুছে ফেলা হয়েছে');
+                allUsers = allUsers.filter(u => u.id !== userId);
+                updateAdminStats();
+                renderUsersTable(allUsers.filter(u => u.role === 'farmer'), 'farmersTable');
+                renderUsersTable(allUsers.filter(u => u.role === 'customer'), 'customersTable');
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        async function toggleUserStatus(userId, currentStatus) {
+            const action = currentStatus ? 'Freeze' : 'Unfreeze';
+            const confirmed = await Modal.confirm(
+                `আপনি কি এই ব্যবহারকারীকে ${action === 'Freeze' ? 'স্থগিত (Freeze)' : 'সক্রিয় (Unfreeze)'} করতে চান?`,
+                'স্ট্যাটাস পরিবর্তন',
+                currentStatus ? 'danger' : 'confirm'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const res = await Auth.authFetch(API.ADMIN_TOGGLE_USER_STATUS(userId), { method: 'PUT' });
+                if (!res.ok) throw new Error('স্ট্যাটাস পরিবর্তন ব্যর্থ');
+                
+                const data = await res.json();
+                Toast.success(`ব্যবহারকারী ${data.is_active ? 'সক্রিয়' : 'স্থগিত'} করা হয়েছে`);
+                
+                // Update local data and re-render
+                const user = allUsers.find(u => u.id === userId);
+                if (user) user.is_active = data.is_active;
+                
+                renderUsersTable(allUsers.filter(u => u.role === 'farmer'), 'farmersTable');
+                renderUsersTable(allUsers.filter(u => u.role === 'customer'), 'customersTable');
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        // ===== PRODUCTS TABLE =====
+        function renderAdminProductsTable() {
+            const container = document.getElementById('adminProductsTable');
+            if (allProducts.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>কোনো পণ্য নেই</h3></div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>পণ্য</th>
+                            <th>মূল্য</th>
+                            <th>স্টক</th>
+                            <th>কৃষক ID</th>
+                            <th>স্ট্যাটাস</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allProducts.map(p => {
+                            const hasImg = p.images && p.images.length > 0;
+                            const thumb = hasImg
+                                ? `<img src="${API.PRODUCT_IMAGE(p.images[0].id)}" alt="${p.name}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;">`
+                                : `<span>${getProductEmoji(p.name)}</span>`;
+                            return `
+                            <tr class="product-row-clickable" onclick="showProductDetail(${p.id})">
+                                <td>#${p.id}</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        ${thumb}
+                                        <strong>${p.name}</strong>
+                                    </div>
+                                </td>
+                                <td>${formatPrice(p.price)}</td>
+                                <td>${p.stock}</td>
+                                <td>#${p.farmer_id}</td>
+                                <td><span class="status-badge status-${p.status}">${getStatusBangla(p.status)}</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); deleteAdminProduct(${p.id})" style="color:var(--danger);">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        async function deleteAdminProduct(productId) {
+            const confirmed = await Modal.confirm(
+                'এই পণ্যটি কি স্থায়ীভাবে মুছে ফেলতে চান?',
+                'পণ্য ডিলিট',
+                'danger'
+            );
+            if (!confirmed) return;
+            try {
+                const res = await Auth.authFetch(API.ADMIN_DELETE_PRODUCT(productId), { method: 'DELETE' });
+                if (!res.ok) throw new Error('মুছতে ব্যর্থ');
+                Toast.success('পণ্য মুছে ফেলা হয়েছে');
+                allProducts = allProducts.filter(p => p.id !== productId);
+                updateAdminStats();
+                renderAdminProductsTable();
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        // ===== ORDERS TABLE =====
+        function renderAdminOrdersTable() {
+            const container = document.getElementById('adminOrdersTable');
+            if (allOrders.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>কোনো অর্ডার নেই</h3></div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>অর্ডার #</th>
+                            <th>ক্রেতা</th>
+                            <th>মোট মূল্য</th>
+                            <th>পেমেন্ট</th>
+                            <th>ডেলিভারি ঠিকানা</th>
+                            <th>স্ট্যাটাস</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allOrders.map(o => {
+                            const customer = allUsers.find(u => u.id === o.customer_id);
+                            const pmLabel = o.payment_method === 'card' ? '💳 কার্ড' : '💵 COD';
+                            return `
+                            <tr class="order-row-clickable" onclick="showOrderDetail(${o.id})">
+                                <td><strong>#${o.id}</strong></td>
+                                <td>${customer ? customer.name : '#' + o.customer_id}</td>
+                                <td><strong>${formatPrice(o.total_price)}</strong></td>
+                                <td><span style="font-size:0.8rem;font-weight:600;">${pmLabel}</span></td>
+                                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${o.delivery_address || 'N/A'}</td>
+                                <td><span class="status-badge status-${o.status}">${getStatusBangla(o.status)}</span></td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        // ===== ORDER DETAIL MODAL =====
+        function showOrderDetail(orderId) {
+            const o = allOrders.find(o => o.id === orderId);
+            if (!o) return;
+
+            document.getElementById('orderDetailModal').classList.add('active');
+
+            const customer = allUsers.find(u => u.id === o.customer_id);
+            const orderDate = o.created_at
+                ? new Date(o.created_at).toLocaleDateString('bn-BD', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+                : 'N/A';
+
+            const itemsHTML = (o.items && o.items.length > 0) ? o.items.map(item => {
+                const product = allProducts.find(p => p.id === item.product_id);
+                const name = product ? product.name : `পণ্য #${item.product_id}`;
+                const unitPrice = product ? product.price : (item.price || 0);
+                const subtotal = unitPrice * item.quantity;
+                return `<div class="order-item-row">
+                    <span class="order-item-emoji">${product ? getProductEmoji(product.name) : '📦'}</span>
+                    <div class="order-item-info">
+                        <div class="order-item-name">${name}</div>
+                        <div class="order-item-meta">${formatPrice(unitPrice)} × ${item.quantity} টি</div>
+                    </div>
+                    <span class="order-item-price">${formatPrice(subtotal)}</span>
+                </div>`;
+            }).join('') : `<div style="color:var(--gray-400);font-size:0.85rem;padding:12px 0;">আইটেম তথ্য পাওয়া যায়নি</div>`;
+
+            const totalItems = o.items ? o.items.reduce((s, i) => s + i.quantity, 0) : 0;
+
+            document.getElementById('orderDetailContent').innerHTML = `
+                <div class="modal-header" style="padding:16px 20px;">
+                    <h3 class="modal-title">📋 অর্ডার #${o.id} বিস্তারিত</h3>
+                    <button class="modal-close" onclick="closeOrderModal()">✕</button>
+                </div>
+                <div style="padding:20px 24px;">
+                    <!-- Order Meta -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);">
+                        <div>
+                            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:6px;">স্ট্যাটাস পরিবর্তন</div>
+                            <select id="orderStatusSelect" onchange="updateOrderStatus(${o.id}, this.value)" style="padding:6px 12px;border-radius:8px;border:2px solid var(--gray-200);font-size:0.85rem;font-weight:600;cursor:pointer;outline:none;">
+                                <option value="pending" ${o.status==='pending'?'selected':''}>⏳ অপেক্ষমান</option>
+                                <option value="accepted" ${o.status==='accepted'?'selected':''}>✅ গৃহীত</option>
+                                <option value="shipped" ${o.status==='shipped'?'selected':''}>🚚 প্রেরিত</option>
+                                <option value="delivered" ${o.status==='delivered'?'selected':''}>🏡 ডেলিভারি সম্পন্ন</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:6px;">তারিখ</div>
+                            <span style="font-size:0.87rem;font-weight:600;color:var(--gray-700);">${orderDate}</span>
+                        </div>
+                        <div>
+                            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:6px;">💳 পেমেন্ট পদ্ধতি</div>
+                            <span style="font-size:0.87rem;font-weight:600;color:var(--gray-700);">${o.payment_method === 'card' ? '💳 কার্ড / মোবাইল ব্যাংলিং' : '💵 ক্যাশ অন ডেলিভারি (COD)'}</span>
+                        </div>
+                        <div style="grid-column:1/-1;">
+                            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:6px;">📍 ডেলিভারি ঠিকানা</div>
+                            <span style="font-size:0.87rem;color:var(--gray-700);">${o.delivery_address || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <!-- Customer Info -->
+                    ${customer ? `
+                    <div style="margin-top:16px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);">
+                        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:10px;">👤 ক্রেতা</div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">${customer.name.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight:700;font-size:0.95rem;">${customer.name}</div>
+                                <div style="font-size:0.8rem;color:var(--gray-500);">${customer.phone || ''} ${customer.email ? '• ' + customer.email : ''}</div>
+                            </div>
+                        </div>
+                    </div>` : ''}
+                    <!-- Items -->
+                    <div style="margin-top:16px;">
+                        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:4px;">📌 অর্ডার আইটেম</div>
+                        <div class="order-items-list">${itemsHTML}</div>
+                        <div class="order-summary-box">
+                            <div class="order-summary-row">
+                                <span>মোট আইটেম</span>
+                                <span>${totalItems} টি</span>
+                            </div>
+                            <div class="order-summary-row total">
+                                <span>💰 সর্বমোট</span>
+                                <span>${formatPrice(o.total_price)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderDetailModal').classList.remove('active');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            const sel = document.getElementById('orderStatusSelect');
+            if (sel) sel.disabled = true;
+            try {
+                const res = await Auth.authFetch(API.ADMIN_UPDATE_ORDER_STATUS(orderId), {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'আপডেট ব্যর্থ');
+                // Update local data
+                const order = allOrders.find(o => o.id === orderId);
+                if (order) order.status = data.status;
+                Toast.success('স্ট্যাটাস আপডেট হয়েছে! ✅');
+                renderAdminOrdersTable();
+            } catch (err) {
+                Toast.error(err.message);
+            } finally {
+                if (sel) sel.disabled = false;
+            }
+        }
+
+        function filterOrders() {
+            const query = (document.getElementById('orderSearchInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
+
+            const filtered = allOrders.filter(o => {
+                const customer = allUsers.find(u => u.id === o.customer_id);
+                const matchText = !query ||
+                    String(o.id).includes(query) ||
+                    (customer && customer.name.toLowerCase().includes(query)) ||
+                    (o.delivery_address && o.delivery_address.toLowerCase().includes(query));
+                const matchStatus = !statusFilter || o.status === statusFilter;
+                return matchText && matchStatus;
+            });
+
+            const container = document.getElementById('adminOrdersTable');
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><h3>কোনো অর্ডার পাওয়া যায়নি</h3></div>`;
+                return;
+            }
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead><tr>
+                        <th>অর্ডার #</th><th>ক্রেতা</th><th>মোট মূল্য</th><th>ডেলিভারি ঠিকানা</th><th>স্ট্যাটাস</th>
+                    </tr></thead>
+                    <tbody>
+                        ${filtered.map(o => {
+                            const customer = allUsers.find(u => u.id === o.customer_id);
+                            return `<tr class="order-row-clickable" onclick="showOrderDetail(${o.id})">
+                                <td><strong>#${o.id}</strong></td>
+                                <td>${customer ? customer.name : '#' + o.customer_id}</td>
+                                <td><strong>${formatPrice(o.total_price)}</strong></td>
+                                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${o.delivery_address || 'N/A'}</td>
+                                <td><span class="status-badge status-${o.status}">${getStatusBangla(o.status)}</span></td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        // ===== USER DETAIL MODAL =====
+        let adminUserMap = null;
+
+        function showUserDetail(userId) {
+            const u = allUsers.find(u => u.id === userId);
+            if (!u) return;
+
+            document.getElementById('userDetailModal').classList.add('active');
+
+            const roleMap = { farmer: '🧑‍🌾 কৃষক', customer: '🛒 ক্রেতা', admin: '🔑 অ্যাডমিন' };
+            const roleClass = u.role === 'farmer' ? 'farmer' : u.role === 'customer' ? 'customer' : '';
+
+            const userProducts = allProducts.filter(p => p.farmer_id === u.id);
+            const userOrders = allOrders.filter(o => o.customer_id === u.id);
+
+            const farmerExtra = u.role === 'farmer' ? `
+                <div class="user-detail-item">
+                    <span class="user-detail-lbl">🏡 খামারের নাম</span>
+                    <span class="user-detail-val">${u.farm_name || 'N/A'}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="user-detail-lbl">📍 খামারের ঠিকানা</span>
+                    <span class="user-detail-val">${u.farm_address || 'N/A'}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="user-detail-lbl">📦 মোট পণ্য</span>
+                    <span class="user-detail-val">${userProducts.length}টি</span>
+                </div>` : `
+                <div class="user-detail-item">
+                    <span class="user-detail-lbl">📋 মোট অর্ডার</span>
+                    <span class="user-detail-val">${userOrders.length}টি</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="user-detail-lbl">💰 মোট খরচ</span>
+                    <span class="user-detail-val">${formatPrice(userOrders.reduce((s,o)=>s+o.total_price,0))}</span>
+                </div>`;
+
+            const hasLocation = u.latitude && u.longitude;
+            const mapHTML = hasLocation
+                ? `<div class="user-detail-section-title" style="margin-top:16px;">🗺️ অবস্থান</div><div id="adminUserMap"></div>`
+                : `<div style="margin-top:12px;font-size:0.82rem;color:var(--gray-400);">📍 অবস্থান সেট করা হয়নি</div>`;
+
+            const joinDate = u.created_at ? new Date(u.created_at).toLocaleDateString('bn-BD', { year:'numeric', month:'long', day:'numeric' }) : 'N/A';
+
+            document.getElementById('userDetailContent').innerHTML = `
+                <div class="modal-header" style="padding:16px 20px;">
+                    <h3 class="modal-title">👤 ব্যবহারকারীর বিস্তারিত</h3>
+                    <button class="modal-close" onclick="closeUserModal()">✕</button>
+                </div>
+                <div class="user-detail-header">
+                    <div class="user-detail-avatar">${u.name ? u.name.charAt(0).toUpperCase() : '?'}</div>
+                    <div>
+                        <div class="user-detail-name">${u.name}</div>
+                        <span class="user-detail-role ${roleClass}">${roleMap[u.role] || u.role}</span>
+                    </div>
+                    <div style="margin-left:auto;">
+                        <span class="status-badge ${u.is_active ? 'status-available' : 'status-out_of_stock'}">${u.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span>
+                    </div>
+                </div>
+                <div class="user-detail-body">
+                    <div class="user-detail-col">
+                        <div class="user-detail-section-title">📋 মূল তথ্য</div>
+                        <div class="user-detail-item">
+                            <span class="user-detail-lbl">🆔 আইডি</span>
+                            <span class="user-detail-val">#${u.id}</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="user-detail-lbl">📱 ফোন</span>
+                            <span class="user-detail-val">${u.phone || 'N/A'}</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="user-detail-lbl">📧 ইমেইল</span>
+                            <span class="user-detail-val">${u.email || 'N/A'}</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="user-detail-lbl">📍 ঠিকানা</span>
+                            <span class="user-detail-val">${u.address || 'N/A'}</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="user-detail-lbl">✅ ভেরিফাইড</span>
+                            <span class="user-detail-val">${u.is_verified ? '✔️ হ্যাঁ' : '❌ না'}</span>
+                        </div>
+                        <div class="user-detail-item">
+                            <span class="user-detail-lbl">📅 যোগদান</span>
+                            <span class="user-detail-val">${joinDate}</span>
+                        </div>
+                    </div>
+                    <div class="user-detail-col">
+                        <div class="user-detail-section-title">${u.role === 'farmer' ? '🧑\u200d🌾 কৃষকের তথ্য' : '🛒 ক্রেতার তথ্য'}</div>
+                        ${farmerExtra}
+                        ${u.role === 'farmer' && userProducts.length > 0 ? `
+                        <div style="margin-top:16px;">
+                            <div class="user-detail-section-title">📦 সাম্প্রতিক পণ্য</div>
+                            ${userProducts.slice(0,3).map(p => `
+                                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--gray-50);">
+                                    <span style="font-size:1.1rem;">${getProductEmoji(p.name)}</span>
+                                    <span style="flex:1;font-size:0.85rem;font-weight:600;">${p.name}</span>
+                                    <span style="font-size:0.8rem;color:var(--primary-600);font-weight:700;">${formatPrice(p.price)}</span>
+                                </div>`).join('')}
+                        </div>` : ''}
+                        ${u.role === 'customer' && userOrders.length > 0 ? `
+                        <div style="margin-top:16px;">
+                            <div class="user-detail-section-title">📋 সাম্প্রতিক অর্ডার</div>
+                            ${userOrders.slice(0,3).map(o => `
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-50);">
+                                    <span style="font-size:0.85rem;font-weight:600;">#${o.id}</span>
+                                    <span style="font-size:0.85rem;color:var(--primary-600);">${formatPrice(o.total_price)}</span>
+                                    <span class="status-badge status-${o.status}" style="font-size:0.7rem;">${getStatusBangla(o.status)}</span>
+                                </div>`).join('')}
+                        </div>` : ''}
+                        ${mapHTML}
+                    </div>
+                </div>
+                <div class="user-action-bar">
+                    <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); closeUserModal(); toggleUserStatus(${u.id}, ${u.is_active})" ${u.role === 'admin' ? 'disabled' : ''}>
+                        ${u.is_active ? '🔴 স্থগিত করুন' : '🟢 সক্রিয় করুন'}
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); closeUserModal(); deleteUser(${u.id})" style="color:var(--danger);" ${u.role === 'admin' ? 'disabled' : ''}>🗑️ ডিলিট</button>
+                </div>
+            `;
+
+            // Init map if coordinates exist
+            if (hasLocation) {
+                setTimeout(() => {
+                    if (adminUserMap) { adminUserMap.remove(); adminUserMap = null; }
+                    const lat = parseFloat(u.latitude), lng = parseFloat(u.longitude);
+                    adminUserMap = L.map('adminUserMap').setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(adminUserMap);
+                    const icon = L.divIcon({ className:'', html:`<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 3px 10px rgba(34,197,94,.5);border:2px solid #fff;">📍</div>`, iconSize:[28,28], iconAnchor:[14,28] });
+                    L.marker([lat, lng], { icon }).addTo(adminUserMap).bindPopup(`🏡 ${u.name}`).openPopup();
+                    setTimeout(() => adminUserMap.invalidateSize(), 200);
+                }, 150);
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userDetailModal').classList.remove('active');
+            if (adminUserMap) { adminUserMap.remove(); adminUserMap = null; }
+        }
+
+        // ===== PRODUCT DETAIL MODAL =====
+        let detailCarouselIndex = 0;
+        let detailImages = [];
+
+        async function showProductDetail(productId) {
+            const modal = document.getElementById('productDetailModal');
+            const body = document.getElementById('detailModalBody');
+            modal.classList.add('active');
+            body.innerHTML = `<div class="page-loader" style="padding:60px;"><div class="spinner"></div></div>`;
+
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) { body.innerHTML = `<div class="empty-state"><h3>পণ্য পাওয়া যায়নি</h3></div>`; return; }
+
+            // Fetch farmer info
+            let farmer = null;
+            const farmerUser = allUsers.find(u => u.id === product.farmer_id);
+            if (farmerUser) farmer = farmerUser;
+
+            // Setup images
+            detailImages = (product.images && product.images.length > 0) ? product.images : [];
+            detailCarouselIndex = 0;
+
+            const imgHTML = detailImages.length > 0
+                ? `<img id="detailCarouselImg" src="${API.PRODUCT_IMAGE(detailImages[0].id)}" alt="${product.name}">
+                   ${detailImages.length > 1 ? `
+                       <button class="carousel-btn prev" onclick="detailCarouselNav(-1)">‹</button>
+                       <button class="carousel-btn next" onclick="detailCarouselNav(1)">›</button>
+                   ` : ''}`
+                : `<div class="no-img">${getProductEmoji(product.name)}</div>`;
+
+            const dotsHTML = detailImages.length > 1
+                ? `<div class="carousel-dots" id="detailDots">${detailImages.map((_, i) =>
+                    `<button class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="detailCarouselGo(${i})"></button>`
+                  ).join('')}</div>` : '';
+
+            const farmerHTML = farmer ? `
+                <div class="farmer-card">
+                    <div class="farmer-card-avatar">${farmer.name ? farmer.name.charAt(0) : '?'}</div>
+                    <div class="farmer-card-info">
+                        <div class="farmer-card-name">${farmer.name}</div>
+                        <div class="farmer-card-meta">${farmer.phone || ''} • ${farmer.email || ''}</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px;">
+                    <div class="detail-item">
+                        <span class="detail-label">🏡 খামারের নাম</span>
+                        <span class="detail-value">${farmer.farm_name || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">📍 খামারের ঠিকানা</span>
+                        <span class="detail-value">${farmer.farm_address || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">📧 ইমেইল</span>
+                        <span class="detail-value">${farmer.email || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">📱 ফোন</span>
+                        <span class="detail-value">${farmer.phone || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">✅ স্ট্যাটাস</span>
+                        <span class="detail-value"><span class="status-badge ${farmer.is_active ? 'status-available' : 'status-out_of_stock'}">${farmer.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></span>
+                    </div>
+                </div>
+                <div class="detail-section-title" style="margin-top:16px;">🗺️ খামারের অবস্থান</div>
+                ${(farmer.latitude && farmer.longitude)
+                    ? `<div id="adminFarmerMap"></div>`
+                    : `<div class="map-no-location">📍 অবস্থান সেট করা হয়নি</div>`
+                }
+            ` : `<p style="color:var(--gray-400);font-size:0.85rem;">কৃষকের তথ্য পাওয়া যায়নি</p>`;
+
+            // store farmer coords for map init
+            const farmerLat = farmer && farmer.latitude ? parseFloat(farmer.latitude) : null;
+            const farmerLng = farmer && farmer.longitude ? parseFloat(farmer.longitude) : null;
+
+            const createdDate = product.created_at ? new Date(product.created_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+
+            body.innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-left">
+                        <div class="detail-carousel">${imgHTML}</div>
+                        ${dotsHTML}
+                        <div style="margin-top:16px;">
+                            <div class="detail-product-name">${product.name}</div>
+                            <div class="detail-desc">${product.description || 'কোনো বিবরণ নেই'}</div>
+                        </div>
+                        <div style="margin-top:16px;">
+                            <div class="detail-section">
+                                <div class="detail-item">
+                                    <span class="detail-label">💰 মূল্য</span>
+                                    <span class="detail-price">${formatPrice(product.price)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">📦 স্টক</span>
+                                    <span class="detail-value">${product.stock} টি</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">📊 স্ট্যাটাস</span>
+                                    <span class="detail-value"><span class="status-badge status-${product.status}">${getStatusBangla(product.status)}</span></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">📷 ছবি</span>
+                                    <span class="detail-value">${detailImages.length}/5</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">📅 তৈরির তারিখ</span>
+                                    <span class="detail-value">${createdDate}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-right">
+                        <div class="detail-section">
+                            <div class="detail-section-title">🧑‍🌾 কৃষকের তথ্য</div>
+                            ${farmerHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Init map after DOM update
+            if (farmerLat && farmerLng) {
+                setTimeout(() => initAdminFarmerMap(farmerLat, farmerLng, farmer.name), 100);
+            }
+        }
+
+        let adminFarmerMap = null;
+
+        function initAdminFarmerMap(lat, lng, farmerName) {
+            if (adminFarmerMap) {
+                adminFarmerMap.remove();
+                adminFarmerMap = null;
+            }
+            adminFarmerMap = L.map('adminFarmerMap', { zoomControl: true, dragging: true }).setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19,
+            }).addTo(adminFarmerMap);
+
+            const farmIcon = L.divIcon({
+                className: '',
+                html: `<div style="
+                    width:32px;height:32px;border-radius:50%;
+                    background:linear-gradient(135deg,#22c55e,#16a34a);
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:15px;box-shadow:0 3px 10px rgba(34,197,94,0.5);
+                    border:2px solid #fff;
+                ">📍</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+            });
+            L.marker([lat, lng], { icon: farmIcon })
+                .addTo(adminFarmerMap)
+                .bindPopup(`🏡 ${farmerName || 'কৃষক'}-এর খামার`)
+                .openPopup();
+
+            setTimeout(() => adminFarmerMap.invalidateSize(), 200);
+        }
+
+        function closeDetailModal() {
+            document.getElementById('productDetailModal').classList.remove('active');
+            if (adminFarmerMap) {
+                adminFarmerMap.remove();
+                adminFarmerMap = null;
+            }
+        }
+
+        function detailCarouselNav(dir) {
+            detailCarouselIndex = (detailCarouselIndex + dir + detailImages.length) % detailImages.length;
+            updateDetailCarousel();
+        }
+
+        function detailCarouselGo(index) {
+            detailCarouselIndex = index;
+            updateDetailCarousel();
+        }
+
+        function updateDetailCarousel() {
+            const img = document.getElementById('detailCarouselImg');
+            if (img) img.src = API.PRODUCT_IMAGE(detailImages[detailCarouselIndex].id);
+            document.querySelectorAll('#detailDots .carousel-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === detailCarouselIndex);
+            });
+        }
+    </script>
+</body>
+</html>

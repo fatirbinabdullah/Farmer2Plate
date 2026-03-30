@@ -10,6 +10,68 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/products.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #profileMap {
+            width: 100%;
+            height: 350px;
+            border-radius: 12px;
+            border: 2px solid var(--gray-700, #374151);
+            margin-top: 8px;
+            z-index: 1;
+        }
+        .map-instructions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--gray-300, #d1d5db);
+        }
+        .map-instructions .icon { font-size: 1.2rem; }
+        .map-coords {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .map-coords .coord-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--gray-800, #1f2937);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--gray-300, #d1d5db);
+            font-family: 'Inter', monospace;
+        }
+        .coord-chip .coord-label {
+            font-weight: 600;
+            color: var(--primary, #22c55e);
+        }
+        .locate-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #60a5fa;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+        .locate-btn:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
@@ -222,6 +284,29 @@
                                     <label class="form-label" for="editFarmAddress">খামারের ঠিকানা</label>
                                     <input type="text" id="editFarmAddress" class="form-input">
                                 </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">📍 খামারের অবস্থান (ম্যাপে পিন সেট করুন)</label>
+                                    <div id="profileMap"></div>
+                                    <div class="map-instructions">
+                                        <span class="icon">👆</span>
+                                        <span>ম্যাপে ক্লিক করে আপনার খামারের অবস্থান নির্ধারণ করুন</span>
+                                    </div>
+                                    <button type="button" class="locate-btn" onclick="locateMe()">
+                                        📡 আমার বর্তমান অবস্থান ব্যবহার করুন
+                                    </button>
+                                    <div class="map-coords" id="mapCoords" style="display:none;">
+                                        <div class="coord-chip">
+                                            <span class="coord-label">LAT</span>
+                                            <span id="displayLat">—</span>
+                                        </div>
+                                        <div class="coord-chip">
+                                            <span class="coord-label">LNG</span>
+                                            <span id="displayLng">—</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="editLatitude">
+                                    <input type="hidden" id="editLongitude">
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary" id="profileUpdateBtn">আপডেট করুন</button>
                         </form>
@@ -283,6 +368,7 @@
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Auth guard
         if (!Auth.requireAuth(['farmer'])) {
@@ -635,7 +721,7 @@
         // ===== PROFILE =====
         async function loadFarmerProfile() {
             try {
-                const res = await fetch(API.FARMER_PROFILE(farmerId));
+                const res = await Auth.authFetch(API.FARMER_PROFILE(farmerId));
                 const data = await res.json();
                 if (!res.ok) throw new Error();
 
@@ -659,6 +745,10 @@
                                     <span>${data.farm_address || 'N/A'}</span>
                                 </div>
                                 <div class="profile-info-item">
+                                    <label>📧 ইমেইল</label>
+                                    <span>${data.email || 'N/A'}</span>
+                                </div>
+                                <div class="profile-info-item">
                                     <label>📦 মোট পণ্য</label>
                                     <span>${farmerProducts.length}</span>
                                 </div>
@@ -670,6 +760,14 @@
                 document.getElementById('editName').value = data.name || '';
                 document.getElementById('editFarmName').value = data.farm_name || '';
                 document.getElementById('editFarmAddress').value = data.farm_address || '';
+                document.getElementById('editLatitude').value = data.latitude || '';
+                document.getElementById('editLongitude').value = data.longitude || '';
+
+                // Initialize map with saved coords or default Bangladesh center
+                initProfileMap(
+                    data.latitude ? parseFloat(data.latitude) : null,
+                    data.longitude ? parseFloat(data.longitude) : null
+                );
             } catch (err) {
                 document.getElementById('profileContent').innerHTML = `<div class="empty-state"><h3>প্রোফাইল লোড ব্যর্থ</h3></div>`;
             }
@@ -678,17 +776,20 @@
         async function handleProfileUpdate(e) {
             e.preventDefault();
             const btn = document.getElementById('profileUpdateBtn');
+            const lat = document.getElementById('editLatitude').value.trim();
+            const lng = document.getElementById('editLongitude').value.trim();
             const data = {
                 name: document.getElementById('editName').value.trim(),
                 farm_name: document.getElementById('editFarmName').value.trim(),
                 farm_address: document.getElementById('editFarmAddress').value.trim(),
+                latitude: lat || null,
+                longitude: lng || null,
             };
 
             setLoading(btn, true);
             try {
-                const res = await fetch(API.FARMER_UPDATE(farmerId), {
+                const res = await Auth.authFetch(API.FARMER_UPDATE(farmerId), {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),
                 });
                 const result = await res.json();
@@ -705,6 +806,132 @@
                 setLoading(btn, false);
             }
         }
+        // ===== MAP =====
+        let profileMap = null;
+        let profileMarker = null;
+
+        function initProfileMap(lat, lng) {
+            const defaultLat = 23.8103;  // Dhaka
+            const defaultLng = 90.4125;
+            const hasCoords = lat && lng;
+            const centerLat = hasCoords ? lat : defaultLat;
+            const centerLng = hasCoords ? lng : defaultLng;
+            const zoom = hasCoords ? 15 : 7;
+
+            // Destroy old map if exists
+            if (profileMap) {
+                profileMap.remove();
+                profileMap = null;
+                profileMarker = null;
+            }
+
+            profileMap = L.map('profileMap').setView([centerLat, centerLng], zoom);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19,
+            }).addTo(profileMap);
+
+            // Custom green marker icon
+            const farmIcon = L.divIcon({
+                className: '',
+                html: `<div style="
+                    width:36px;height:36px;border-radius:50%;
+                    background:linear-gradient(135deg,#22c55e,#16a34a);
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:18px;box-shadow:0 3px 12px rgba(34,197,94,0.5);
+                    border:3px solid #fff;
+                ">📍</div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+            });
+
+            if (hasCoords) {
+                profileMarker = L.marker([centerLat, centerLng], { icon: farmIcon }).addTo(profileMap);
+                profileMarker.bindPopup('🏡 আপনার খামারের অবস্থান').openPopup();
+                updateCoordsDisplay(centerLat, centerLng);
+            }
+
+            // Click to set pin
+            profileMap.on('click', function(e) {
+                const { lat, lng } = e.latlng;
+                setMapPin(lat, lng, farmIcon);
+            });
+
+            // Fix tiles not rendering on hidden tab
+            setTimeout(() => { profileMap.invalidateSize(); }, 300);
+        }
+
+        function setMapPin(lat, lng, icon) {
+            if (!icon) {
+                icon = L.divIcon({
+                    className: '',
+                    html: `<div style="
+                        width:36px;height:36px;border-radius:50%;
+                        background:linear-gradient(135deg,#22c55e,#16a34a);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:18px;box-shadow:0 3px 12px rgba(34,197,94,0.5);
+                        border:3px solid #fff;
+                    ">📍</div>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                });
+            }
+
+            if (profileMarker) {
+                profileMarker.setLatLng([lat, lng]);
+            } else {
+                profileMarker = L.marker([lat, lng], { icon }).addTo(profileMap);
+            }
+            profileMarker.bindPopup('🏡 আপনার খামারের অবস্থান').openPopup();
+
+            document.getElementById('editLatitude').value = lat.toFixed(6);
+            document.getElementById('editLongitude').value = lng.toFixed(6);
+            updateCoordsDisplay(lat, lng);
+
+            profileMap.flyTo([lat, lng], 16, { duration: 0.8 });
+        }
+
+        function updateCoordsDisplay(lat, lng) {
+            document.getElementById('mapCoords').style.display = 'flex';
+            document.getElementById('displayLat').textContent = parseFloat(lat).toFixed(6);
+            document.getElementById('displayLng').textContent = parseFloat(lng).toFixed(6);
+        }
+
+        function locateMe() {
+            if (!navigator.geolocation) {
+                Toast.error('আপনার ব্রাউজার লোকেশন সাপোর্ট করে না');
+                return;
+            }
+            Toast.info('অবস্থান খোঁজা হচ্ছে...');
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    if (profileMap) {
+                        setMapPin(latitude, longitude);
+                        Toast.success('অবস্থান পাওয়া গেছে! 📍');
+                    }
+                },
+                (err) => {
+                    console.error('Geolocation error:', err);
+                    if (err.code === 1) {
+                        Toast.error('লোকেশন পারমিশন দেওয়া হয়নি। ব্রাউজার সেটিংস থেকে অনুমতি দিন।');
+                    } else {
+                        Toast.error('অবস্থান শনাক্ত করা যায়নি। ম্যাপে ক্লিক করে ম্যানুয়ালি পিন সেট করুন।');
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // Re-render map when profile tab is shown
+        const origShowSection = showSection;
+        showSection = function(section) {
+            origShowSection(section);
+            if (section === 'profile' && profileMap) {
+                setTimeout(() => { profileMap.invalidateSize(); }, 200);
+            }
+        };
     </script>
 </body>
 </html>

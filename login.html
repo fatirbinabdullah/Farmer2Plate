@@ -62,8 +62,8 @@
                         <input type="hidden" id="loginRole" value="farmer">
                         
                         <div class="form-group">
-                            <label class="form-label" for="loginPhone">ফোন নম্বর</label>
-                            <input type="text" id="loginPhone" class="form-input" placeholder="01XXXXXXXXX" required>
+                            <label class="form-label" for="loginEmail">ইমেইল</label>
+                            <input type="email" id="loginEmail" class="form-input" placeholder="example@gmail.com" required>
                         </div>
 
                         <div class="form-group">
@@ -121,10 +121,10 @@
             e.preventDefault();
             const submitBtn = document.getElementById('loginSubmitBtn');
             const selectedRole = document.getElementById('loginRole').value;
-            const phone = document.getElementById('loginPhone').value.trim();
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
-            if (!phone || !password) {
+            if (!email || !password) {
                 Toast.error('সব ফিল্ড পূরণ করুন!');
                 return;
             }
@@ -141,12 +141,19 @@
                 const res = await fetch(urlMap[selectedRole], {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone, password }),
+                    body: JSON.stringify({ email, password }),
                 });
 
                 const data = await res.json();
 
                 if (!res.ok) {
+                    if (res.status === 403 && data.detail.includes('ভেরিফাই')) {
+                        Toast.info('ইমেইল ভেরিফাই করা হয়নি! ভেরিফিকেশন পেইজে পাঠানো হচ্ছে...');
+                        setTimeout(() => {
+                            window.location.href = `otp.html?email=${encodeURIComponent(email)}&role=${selectedRole}`;
+                        }, 2000);
+                        return;
+                    }
                     throw new Error(data.detail || 'লগইন ব্যর্থ হয়েছে');
                 }
 
