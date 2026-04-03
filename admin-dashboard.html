@@ -317,6 +317,7 @@
                             <option value="accepted">✅ গৃহীত</option>
                             <option value="shipped">🚚 প্রেরিত</option>
                             <option value="delivered">🏡 ডেলিভারি সম্পন্ন</option>
+                            <option value="cancelled">❌ বাতিল</option>
                         </select>
                     </div>
                     <div class="panel-body no-padding" id="adminOrdersTable">
@@ -563,10 +564,21 @@
                     <tbody>
                         ${users.map(u => {
                             const roleMap = { farmer: '🧑‍🌾 কৃষক', customer: '🛒 ক্রেতা', admin: '🔑 অ্যাডমিন' };
+                            const picUrl = u.role === 'farmer'
+                                ? API.FARMER_PROFILE_PICTURE(u.id)
+                                : API.CUSTOMER_PROFILE_PICTURE(u.id);
+                            const avatarHtml = u.has_profile_picture
+                                ? `<img src="${picUrl}" alt="${u.name}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-300,#6ee7b7);flex-shrink:0;">`
+                                : `<div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex-shrink:0;">${u.name ? u.name.charAt(0).toUpperCase() : '?'}</div>`;
                             return `
                             <tr class="user-row-clickable" onclick="showUserDetail(${u.id})">
                                 <td>#${u.id}</td>
-                                <td><strong>${u.name}</strong></td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        ${avatarHtml}
+                                        <strong>${u.name}</strong>
+                                    </div>
+                                </td>
                                 <td>${u.phone}</td>
                                 <td>${roleMap[u.role] || u.role}</td>
                                 <td><span class="status-badge ${u.is_active ? 'status-available' : 'status-out_of_stock'}">${u.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
@@ -786,6 +798,7 @@
                                 <option value="accepted" ${o.status==='accepted'?'selected':''}>✅ গৃহীত</option>
                                 <option value="shipped" ${o.status==='shipped'?'selected':''}>🚚 প্রেরিত</option>
                                 <option value="delivered" ${o.status==='delivered'?'selected':''}>🏡 ডেলিভারি সম্পন্ন</option>
+                                <option value="cancelled" ${o.status==='cancelled'?'selected':''}>❌ বাতিল</option>
                             </select>
                         </div>
                         <div>
@@ -947,7 +960,10 @@
                     <button class="modal-close" onclick="closeUserModal()">✕</button>
                 </div>
                 <div class="user-detail-header">
-                    <div class="user-detail-avatar">${u.name ? u.name.charAt(0).toUpperCase() : '?'}</div>
+                    ${ u.has_profile_picture
+                        ? `<img src="${ u.role === 'farmer' ? API.FARMER_PROFILE_PICTURE(u.id) : API.CUSTOMER_PROFILE_PICTURE(u.id) }" alt="${u.name}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-400,#34d399);box-shadow:0 4px 16px rgba(34,197,94,0.2);flex-shrink:0;">`
+                        : `<div class="user-detail-avatar">${u.name ? u.name.charAt(0).toUpperCase() : '?'}</div>`
+                    }
                     <div>
                         <div class="user-detail-name">${u.name}</div>
                         <span class="user-detail-role ${roleClass}">${roleMap[u.role] || u.role}</span>

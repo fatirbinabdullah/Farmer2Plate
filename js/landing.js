@@ -36,11 +36,12 @@ function createParticles() {
 function animateCounters() {
     const counters = document.querySelectorAll('.stat-number[data-count]');
     
+    // IntersectionObserver ব্যবহার করে চেক করা ইউজার সেখানে স্ক্রোল করেছে কিনা
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const target = parseInt(entry.target.dataset.count);
-                animateNumber(entry.target, 0, target, 2000);
+                animateNumber(entry.target, 0, target, 2000); // ২০০০ মিলিসেকেন্ড বা ২ সেকেন্ড লাগবে
                 observer.unobserve(entry.target);
             }
         });
@@ -57,6 +58,7 @@ function animateNumber(element, start, end, duration) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
+        // Ease out ইফেক্ট (প্রথমে স্পিডে বাড়বে, শেষে স্লো হবে)
         const eased = 1 - Math.pow(1 - progress, 3);
         const current = Math.floor(start + (end - start) * eased);
         
@@ -77,8 +79,8 @@ function setupScrollAnimations() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1'; 
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.style.opacity = '1'; // অদৃশ্য থেকে দৃশ্যমান করা
+                entry.target.style.transform = 'translateY(0)'; // নিচে থেকে উপরে ওঠানো
                 observer.unobserve(entry.target);
             }
         });
@@ -87,7 +89,7 @@ function setupScrollAnimations() {
     animateElements.forEach((el, i) => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
-        el.style.transition = `all 0.6s ease ${i * 0.1}s`;
+        el.style.transition = `all 0.6s ease ${i * 0.1}s`; // একটার পর আরেকটা অ্যানিমেট হওয়ার ডিলে
         observer.observe(el);
     });
 }

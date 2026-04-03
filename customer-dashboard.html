@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/products.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+
     <style>
         /* Customer map styles */
         .cust-map {
@@ -164,6 +166,116 @@
             color: var(--gray-500);
             margin-top: 1px;
         }
+
+        /* Profile Picture Upload Styles */
+        .profile-pic-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-50, #ecfdf5), #f0fdf4);
+            border-radius: 16px;
+            border: 1px solid var(--primary-100, #d1fae5);
+            margin-bottom: 24px;
+        }
+
+        .profile-pic-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .profile-pic-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-400, #34d399);
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+            display: block;
+        }
+
+        .profile-pic-initials {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-500, #22c55e), var(--primary-600, #16a34a));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            border: 3px solid var(--primary-400, #34d399);
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+        }
+
+        .profile-pic-edit-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary-500, #22c55e);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .profile-pic-edit-btn:hover {
+            background: var(--primary-600, #16a34a);
+            transform: scale(1.1);
+        }
+
+        .profile-pic-edit-btn input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .profile-pic-info h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--gray-800);
+        }
+
+        .profile-pic-info p {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        .profile-pic-uploading {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--primary-600, #16a34a);
+            margin-top: 6px;
+        }
+
+        .profile-pic-uploading.show { display: flex; }
+
+        .pic-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--primary-200);
+            border-top-color: var(--primary-500);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -215,6 +327,9 @@
                 <a href="#buy-products" class="sidebar-link" onclick="showSection('buy-products')"
                     data-section="buy-products">
                     <span class="link-icon">🛒</span> পণ্য কিনুন
+                </a>
+                <a href="#notifications" class="sidebar-link" onclick="showSection('notifications')" data-section="notifications">
+                    <span class="link-icon">🔔</span> নোটিফিকেশন <span class="notification-badge" id="notifBadge" style="display:none;background:#ef4444;color:white;border-radius:10px;padding:2px 6px;font-size:0.75rem;margin-left:auto;">0</span>
                 </a>
             </div>
             <div class="sidebar-section">
@@ -305,6 +420,20 @@
                 </div>
             </div>
 
+            <!-- Notifications Section -->
+            <div id="section-notifications" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🔔 নোটিফিকেশন</h1>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="notificationsContainer">
+                        <div class="empty-state"><h3>কোনো নোটিফিকেশন নেই</h3></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Profile Section -->
             <div id="section-profile" class="dash-section" style="display:none;">
                 <div class="dashboard-header">
@@ -324,6 +453,26 @@
                         <h2 class="panel-title">প্রোফাইল আপডেট</h2>
                     </div>
                     <div class="panel-body">
+                        <!-- Profile Picture Upload -->
+                        <div class="profile-pic-section">
+                            <div class="profile-pic-wrapper">
+                                <div id="custPicDisplay" class="profile-pic-initials">?</div>
+                                <label class="profile-pic-edit-btn" title="ছবি পরিবর্তন করুন">
+                                    📷
+                                    <input type="file" id="custProfilePicInput" accept="image/jpeg,image/png,image/webp,image/gif" onchange="uploadCustomerProfilePic(this)">
+                                </label>
+                            </div>
+                            <div class="profile-pic-info">
+                                <h4>প্রোফাইল ছবি</h4>
+                                <p>ছবিতে ক্লিক করে আপলোড করুন</p>
+                                <p>JPEG, PNG, WebP — সর্বোচ্চ ৫MB</p>
+                                <div class="profile-pic-uploading" id="custPicUploading">
+                                    <div class="pic-spinner"></div>
+                                    <span>আপলোড হচ্ছে...</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <form id="profileForm" onsubmit="handleProfileUpdate(event)">
                             <div class="product-form-grid">
                                 <div class="form-group">
@@ -405,9 +554,19 @@
         </div>
         <div class="cart-items" id="cartItems"></div>
         <div class="cart-footer">
-            <div class="cart-total">
-                <span>সর্বমোট:</span>
-                <span id="cartTotal">৳0.00</span>
+            <div class="cart-summary" style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.9rem; color:#4b5563;">
+                    <span>সাবটোটাল:</span>
+                    <span id="cartSubtotal">৳0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.9rem; color:#ef4444; font-weight:500;">
+                    <span>ডেলিভারি চার্জ:</span>
+                    <span>৳১০০.০০</span>
+                </div>
+                <div class="cart-total" style="border-top:1px dashed #e5e7eb; padding-top:8px;">
+                    <span>সর্বমোট:</span>
+                    <span id="cartTotal">৳0.00</span>
+                </div>
             </div>
             <div class="form-group" style="margin-bottom:0;">
                 <label class="form-label" for="deliveryAddress">📍 ডেলিভারি ঠিকানা</label>
@@ -459,6 +618,57 @@
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+    <!-- Image Crop Modal -->
+    <div id="custCropModal" style="
+        display:none; position:fixed; inset:0; z-index:9000;
+        background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
+        align-items:center; justify-content:center; padding:16px;
+    ">
+        <div style="
+            background:#fff; border-radius:20px; max-width:480px; width:100%;
+            box-shadow:0 25px 50px rgba(0,0,0,0.4); overflow:hidden;
+        ">
+            <!-- Header -->
+            <div style="padding:18px 22px 14px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <h3 style="font-size:1.05rem; font-weight:700; color:#1f2937; margin:0;">📷 প্রোফাইল ছবি কাটছাঁট করুন</h3>
+                    <p style="font-size:0.78rem; color:#6b7280; margin:4px 0 0;">ড্র্যাগ করে সরান • স্ক্রোল করে জুম করুন</p>
+                </div>
+                <button onclick="closeCustCropModal()" style="width:32px;height:32px;border-radius:8px;background:#f3f4f6;color:#6b7280;font-size:1.1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>
+
+            <!-- Crop Area -->
+            <div style="padding:16px; background:#f9fafb;">
+                <div style="border-radius:12px; overflow:hidden; max-height:360px; background:#111;">
+                    <img id="custCropImage" style="display:block; max-width:100%;">
+                </div>
+            </div>
+
+            <!-- Preview + Actions -->
+            <div style="padding:14px 22px 20px; display:flex; align-items:center; gap:16px;">
+                <div style="flex-shrink:0; text-align:center;">
+                    <div style="font-size:0.7rem; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em;">প্রিভিউ</div>
+                    <div id="custCropPreviewWrap" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #34d399; box-shadow:0 4px 12px rgba(52,211,153,.25); background:#e5e7eb; flex-shrink:0;"></div>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+                    <button onclick="confirmCustCrop()" style="
+                        width:100%; padding:11px; border-radius:10px;
+                        background:linear-gradient(135deg,#059669,#10b981);
+                        color:#fff; font-weight:700; font-size:0.95rem;
+                        box-shadow:0 4px 14px rgba(16,185,129,.35);
+                        transition:transform .15s;
+                    " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">✅ আপলোড করুন</button>
+                    <button onclick="closeCustCropModal()" style="
+                        width:100%; padding:9px; border-radius:10px;
+                        background:#f3f4f6; color:#4b5563;
+                        font-size:0.88rem; font-weight:500;
+                    ">বাতিল</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         // Auth guard
         if (!Auth.requireAuth(['customer'])) { }
@@ -481,12 +691,87 @@
             const link = document.querySelector(`.sidebar-link[data-section="${section}"]`);
             if (link) link.classList.add('active');
             window.location.hash = section;
+
+            if (section === 'notifications') {
+                markAllCustomerNotificationsRead();
+            }
         }
 
         async function loadCustomerData() {
             await loadCustomerOrders();
             loadCustomerProfile();
             loadDashProducts(); // Load marketplace products
+            loadCustomerNotifications();
+        }
+
+        // ===== NOTIFICATIONS =====
+        let notificationsStore = [];
+        async function loadCustomerNotifications() {
+            try {
+                const res = await Auth.authFetch(API.CUSTOMER_NOTIFICATIONS);
+                if (!res.ok) throw new Error();
+                notificationsStore = await res.json();
+                renderCustomerNotifications();
+            } catch (err) {
+                console.error("Failed to load notifications", err);
+            }
+        }
+
+        function renderCustomerNotifications() {
+            const container = document.getElementById('notificationsContainer');
+            if (notificationsStore.length === 0) {
+                container.innerHTML = `<div class="empty-state"><h3>কোনো নোটিফিকেশন নেই</h3></div>`;
+                document.getElementById('notifBadge').style.display = 'none';
+                return;
+            }
+
+            const unreadCount = notificationsStore.filter(n => !n.is_read).length;
+            const badge = document.getElementById('notifBadge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            container.innerHTML = notificationsStore.map(n => `
+                <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; align-items:start; gap:12px; background:${n.is_read ? '#fff' : '#f0fdf4'};">
+                    <div style="font-size:1.5rem; flex-shrink:0;">${n.is_read ? '❕' : '🔵'}</div>
+                    <div style="flex:1;">
+                        <div style="color:#1f2937; font-size:0.95rem; line-height:1.4;">${n.message}</div>
+                        <div style="color:#9ca3af; font-size:0.75rem; margin-top:6px;">${new Date(n.created_at).toLocaleString()}</div>
+                    </div>
+                    <button onclick="deleteCustomerNotification(${n.id})" style="background:none;border:none;color:#ef4444;font-size:1.1rem;cursor:pointer;padding:4px;" title="ডিলিট করুন">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        async function markAllCustomerNotificationsRead() {
+            const unread = notificationsStore.filter(n => !n.is_read);
+            if (unread.length === 0) return;
+
+            notificationsStore.forEach(n => n.is_read = true);
+            renderCustomerNotifications();
+
+            for (const n of unread) {
+                try {
+                    await Auth.authFetch(API.CUSTOMER_READ_NOTIFICATION(n.id), { method: 'PUT' });
+                } catch(e) {}
+            }
+        }
+
+        async function deleteCustomerNotification(id) {
+            const confirmed = await Modal.confirm('এই নোটিফিকেশনটি কি ডিলিট করতে চান?', 'ডিলিট করুন', 'danger');
+            if(!confirmed) return;
+            try {
+                const res = await Auth.authFetch(API.CUSTOMER_DELETE_NOTIFICATION(id), { method: 'DELETE' });
+                if (!res.ok) throw new Error();
+                Toast.success('নোটিফিকেশন ডিলিট হয়েছে');
+                notificationsStore = notificationsStore.filter(n => n.id !== id);
+                renderCustomerNotifications();
+            } catch (err) {
+                Toast.error('ডিলিট করতে সমস্যা হয়েছে');
+            }
         }
 
         // ===== MARKETPLACE (BUY PRODUCTS) =====
@@ -610,7 +895,14 @@
                 </div>
             `).join('');
 
-            document.getElementById('cartTotal').textContent = formatPrice(Cart.getTotal());
+            const subtotal = Cart.getTotal();
+            const deliveryCharge = 100;
+            const finalTotal = subtotal > 0 ? subtotal + deliveryCharge : 0;
+
+            const subEl = document.getElementById('cartSubtotal');
+            if (subEl) subEl.textContent = formatPrice(subtotal);
+            
+            document.getElementById('cartTotal').textContent = formatPrice(finalTotal);
         }
 
         function updateDashQty(productId, delta) {
@@ -736,9 +1028,33 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error();
 
+                // প্রোফাইল পিকচার দেখানো (upload section)
+                const picEl = document.getElementById('custPicDisplay');
+                if (data.has_profile_picture) {
+                    picEl.outerHTML = `<img id="custPicDisplay" class="profile-pic-avatar" src="${API.CUSTOMER_PROFILE_PICTURE(customerId)}?t=${Date.now()}" alt="Profile">`;
+                } else {
+                    picEl.className = 'profile-pic-initials';
+                    picEl.textContent = data.name ? data.name.charAt(0).toUpperCase() : '?';
+                }
+
+                // ===== Navbar avatar update =====
+                const navAvatarBtn = document.getElementById('userAvatar');
+                if (navAvatarBtn) {
+                    if (data.has_profile_picture) {
+                        navAvatarBtn.innerHTML = `<img src="${API.CUSTOMER_PROFILE_PICTURE(customerId)}?t=${Date.now()}" alt="${data.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`;
+                    } else {
+                        navAvatarBtn.innerHTML = `<span id="userInitial">${data.name ? data.name.charAt(0).toUpperCase() : '?'}</span>`;
+                    }
+                }
+
+                // Profile card এ picture দেখানো
+                const avatarHtml = data.has_profile_picture
+                    ? `<img src="${API.CUSTOMER_PROFILE_PICTURE(customerId)}?t=${Date.now()}" alt="${data.name}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-400,#34d399);box-shadow:0 4px 16px rgba(34,197,94,0.2);">`
+                    : `<div class="profile-avatar-lg">${data.name ? data.name.charAt(0) : '?'}</div>`;
+
                 document.getElementById('profileContent').innerHTML = `
                     <div class="profile-card">
-                        <div class="profile-avatar-lg">${data.name ? data.name.charAt(0) : '?'}</div>
+                        ${avatarHtml}
                         <div class="profile-details">
                             <h2>${data.name}</h2>
                             <span class="profile-role">🛒 ক্রেতা</span>
@@ -781,6 +1097,113 @@
                 document.getElementById('profileContent').innerHTML = `<div class="empty-state"><h3>প্রোফাইল লোড ব্যর্থ</h3></div>`;
             }
         }
+
+        // ===== Crop Modal Logic (Customer) =====
+        let custCropper = null;
+
+        function uploadCustomerProfilePic(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                Toast.error('ছবি সর্বোচ্চ ৫MB হতে পারবে!');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const modal = document.getElementById('custCropModal');
+                const img = document.getElementById('custCropImage');
+
+                img.src = e.target.result;
+                modal.style.display = 'flex';
+
+                // আগের cropper destroy করা
+                if (custCropper) { custCropper.destroy(); custCropper = null; }
+
+                // Cropper init
+                custCropper = new Cropper(img, {
+                    aspectRatio: 1,           // Square crop
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.9,
+                    cropBoxMovable: false,
+                    cropBoxResizable: false,
+                    toggleDragModeOnDblclick: false,
+                    background: false,
+                    guides: false,
+                    center: true,
+                    highlight: false,
+                    // Circular preview
+                    preview: '#custCropPreviewWrap',
+                    ready() {
+                        // Circular preview CSS
+                        const previewEl = document.querySelector('#custCropPreviewWrap .cropper-preview');
+                        if (previewEl) previewEl.style.borderRadius = '50%';
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+            input.value = ''; // Reset so same file can re-trigger
+        }
+
+        function closeCustCropModal() {
+            document.getElementById('custCropModal').style.display = 'none';
+            if (custCropper) { custCropper.destroy(); custCropper = null; }
+        }
+
+        async function confirmCustCrop() {
+            if (!custCropper) return;
+
+            // Canvas থেকে blob বানানো (WebP, 400x400)
+            const canvas = custCropper.getCroppedCanvas({ width: 400, height: 400, imageSmoothingQuality: 'high' });
+
+            canvas.toBlob(async (blob) => {
+                closeCustCropModal();
+
+                const uploading = document.getElementById('custPicUploading');
+                uploading.classList.add('show');
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'avatar.webp');
+
+                    const res = await Auth.authFetch(API.CUSTOMER_PROFILE_PICTURE_UPLOAD(customerId), {
+                        method: 'POST',
+                        body: formData,
+                        headers: {}
+                    });
+
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.detail || 'আপলোড ব্যর্থ');
+
+                    // প্রিভিউ আপডেট
+                    const ts = Date.now();
+                    const picEl = document.getElementById('custPicDisplay');
+                    const newImg = document.createElement('img');
+                    newImg.id = 'custPicDisplay';
+                    newImg.className = 'profile-pic-avatar';
+                    newImg.src = API.CUSTOMER_PROFILE_PICTURE(customerId) + '?t=' + ts;
+                    newImg.alt = 'Profile';
+                    picEl.replaceWith(newImg);
+
+                    // Navbar avatar update
+                    const navBtn = document.getElementById('userAvatar');
+                    if (navBtn) {
+                        navBtn.innerHTML = `<img src="${API.CUSTOMER_PROFILE_PICTURE(customerId)}?t=${ts}" alt="Profile" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`;
+                    }
+
+                    Toast.success('প্রোফাইল ছবি আপডেট হয়েছে! 📷');
+                    loadCustomerProfile();
+                } catch (err) {
+                    Toast.error(err.message);
+                } finally {
+                    uploading.classList.remove('show');
+                }
+            }, 'image/webp', 0.88);
+        }
+
 
         async function handleProfileUpdate(e) {
             e.preventDefault();

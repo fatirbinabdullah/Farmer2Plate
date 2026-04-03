@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/products.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <style>
         #profileMap {
             width: 100%;
@@ -71,6 +72,116 @@
             background: rgba(59, 130, 246, 0.25);
             border-color: rgba(59, 130, 246, 0.5);
         }
+
+        /* Profile Picture Upload Styles */
+        .profile-pic-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(22,163,74,0.05));
+            border-radius: 16px;
+            border: 1px solid rgba(34,197,94,0.2);
+            margin-bottom: 24px;
+        }
+
+        .profile-pic-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .profile-pic-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-400, #34d399);
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+            display: block;
+        }
+
+        .profile-pic-initials {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            border: 3px solid #34d399;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+        }
+
+        .profile-pic-edit-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .profile-pic-edit-btn:hover {
+            background: #16a34a;
+            transform: scale(1.1);
+        }
+
+        .profile-pic-edit-btn input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .profile-pic-info h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--gray-200, #e5e7eb);
+        }
+
+        .profile-pic-info p {
+            font-size: 0.8rem;
+            color: var(--gray-400, #9ca3af);
+            margin: 0;
+        }
+
+        .profile-pic-uploading {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: #34d399;
+            margin-top: 6px;
+        }
+
+        .profile-pic-uploading.show { display: flex; }
+
+        .pic-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(52,211,153,0.3);
+            border-top-color: #34d399;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -118,6 +229,9 @@
                 </a>
                 <a href="#add-product" class="sidebar-link" onclick="showSection('add-product')" data-section="add-product">
                     <span class="link-icon">➕</span> পণ্য যোগ করুন
+                </a>
+                <a href="#notifications" class="sidebar-link" onclick="showSection('notifications')" data-section="notifications">
+                    <span class="link-icon">🔔</span> নোটিফিকেশন <span id="notifBadge" style="display:none;background:#ef4444;color:white;border-radius:10px;padding:2px 8px;font-size:0.75rem;margin-left:auto;font-weight:bold;">0</span>
                 </a>
             </div>
             <div class="sidebar-section">
@@ -253,6 +367,21 @@
                 </div>
             </div>
 
+            <!-- Notifications Section -->
+            <div id="section-notifications" class="dash-section" style="display:none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">🔔 নোটিফিকেশনসমূহ</h1>
+                        <p class="dashboard-subtitle">আপনার সর্বশেষ আপডেটগুলো এখানে দেখতে পাবেন</p>
+                    </div>
+                </div>
+                <div class="dashboard-panel">
+                    <div class="panel-body no-padding" id="notificationsContainer">
+                        <div class="page-loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Profile Section -->
             <div id="section-profile" class="dash-section" style="display:none;">
                 <div class="dashboard-header">
@@ -270,6 +399,26 @@
                         <h2 class="panel-title">প্রোফাইল আপডেট</h2>
                     </div>
                     <div class="panel-body">
+                        <!-- Profile Picture Upload -->
+                        <div class="profile-pic-section">
+                            <div class="profile-pic-wrapper">
+                                <div id="farmerPicDisplay" class="profile-pic-initials">?</div>
+                                <label class="profile-pic-edit-btn" title="ছবি পরিবর্তন করুন">
+                                    📷
+                                    <input type="file" id="farmerProfilePicInput" accept="image/jpeg,image/png,image/webp,image/gif" onchange="uploadFarmerProfilePic(this)">
+                                </label>
+                            </div>
+                            <div class="profile-pic-info">
+                                <h4>প্রোফাইল ছবি</h4>
+                                <p>ছবিতে ক্লিক করে আপলোড করুন</p>
+                                <p>JPEG, PNG, WebP — সর্বোচ্চ ৫MB</p>
+                                <div class="profile-pic-uploading" id="farmerPicUploading">
+                                    <div class="pic-spinner"></div>
+                                    <span>আপলোড হচ্ছে...</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <form id="profileForm" onsubmit="handleProfileUpdate(event)">
                             <div class="product-form-grid">
                                 <div class="form-group">
@@ -369,6 +518,50 @@
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+    <!-- Image Crop Modal (Farmer) -->
+    <div id="farmerCropModal" style="
+        display:none; position:fixed; inset:0; z-index:9000;
+        background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
+        align-items:center; justify-content:center; padding:16px;
+    ">
+        <div style="
+            background:#fff; border-radius:20px; max-width:480px; width:100%;
+            box-shadow:0 25px 50px rgba(0,0,0,0.4); overflow:hidden;
+        ">
+            <div style="padding:18px 22px 14px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <h3 style="font-size:1.05rem; font-weight:700; color:#1f2937; margin:0;">📷 প্রোফাইল ছবি কাটছাঁট করুন</h3>
+                    <p style="font-size:0.78rem; color:#6b7280; margin:4px 0 0;">ড্র্যাগ করে সরান • স্ক্রোল করে জুম করুন</p>
+                </div>
+                <button onclick="closeFarmerCropModal()" style="width:32px;height:32px;border-radius:8px;background:#f3f4f6;color:#6b7280;font-size:1.1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>
+            <div style="padding:16px; background:#f9fafb;">
+                <div style="border-radius:12px; overflow:hidden; max-height:360px; background:#111;">
+                    <img id="farmerCropImage" style="display:block; max-width:100%;">
+                </div>
+            </div>
+            <div style="padding:14px 22px 20px; display:flex; align-items:center; gap:16px;">
+                <div style="flex-shrink:0; text-align:center;">
+                    <div style="font-size:0.7rem; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em;">প্রিভিউ</div>
+                    <div id="farmerCropPreviewWrap" style="width:64px; height:64px; border-radius:50%; overflow:hidden; border:3px solid #34d399; box-shadow:0 4px 12px rgba(52,211,153,.25); background:#e5e7eb; flex-shrink:0;"></div>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+                    <button onclick="confirmFarmerCrop()" style="
+                        width:100%; padding:11px; border-radius:10px;
+                        background:linear-gradient(135deg,#059669,#10b981);
+                        color:#fff; font-weight:700; font-size:0.95rem;
+                        box-shadow:0 4px 14px rgba(16,185,129,.35); transition:transform .15s;
+                    " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">✅ আপলোড করুন</button>
+                    <button onclick="closeFarmerCropModal()" style="
+                        width:100%; padding:9px; border-radius:10px;
+                        background:#f3f4f6; color:#4b5563; font-size:0.88rem; font-weight:500;
+                    ">বাতিল</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         // Auth guard
         if (!Auth.requireAuth(['farmer'])) {
@@ -389,6 +582,7 @@
         async function loadFarmerData() {
             await loadFarmerProducts();
             loadFarmerProfile();
+            loadFarmerNotifications();
         }
 
         // ===== SECTIONS =====
@@ -402,6 +596,85 @@
             if (link) link.classList.add('active');
 
             window.location.hash = section;
+
+            if (section === 'notifications') {
+                markAllNotificationsRead();
+            }
+        }
+
+        // ===== NOTIFICATIONS =====
+        let notificationsStore = [];
+        async function loadFarmerNotifications() {
+            try {
+                const res = await Auth.authFetch(API.FARMER_NOTIFICATIONS);
+                if (!res.ok) throw new Error();
+                notificationsStore = await res.json();
+                renderNotifications();
+            } catch (err) {
+                console.error("Failed to load notifications", err);
+            }
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationsContainer');
+            if (notificationsStore.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h3>কোনো নোটিফিকেশন নেই</h3>
+                        <p>নতুন আপডেট এলে এখানে দেখতে পাবেন।</p>
+                    </div>`;
+                return;
+            }
+
+            const unreadCount = notificationsStore.filter(n => !n.is_read).length;
+            const badge = document.getElementById('notifBadge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            container.innerHTML = notificationsStore.map(n => `
+                <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; align-items:start; gap:12px; background:${n.is_read ? '#fff' : '#f0fdf4'};">
+                    <div style="font-size:1.5rem; flex-shrink:0;">${n.is_read ? '❕' : '🔵'}</div>
+                    <div style="flex:1;">
+                        <div style="color:#1f2937; font-size:0.95rem; line-height:1.4;">${n.message}</div>
+                        <div style="color:#9ca3af; font-size:0.75rem; margin-top:6px;">${new Date(n.created_at).toLocaleString()}</div>
+                    </div>
+                    <button onclick="deleteFarmerNotification(${n.id})" style="background:none;border:none;color:#ef4444;font-size:1.1rem;cursor:pointer;padding:4px;" title="ডিলিট করুন">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        async function markAllNotificationsRead() {
+            const unread = notificationsStore.filter(n => !n.is_read);
+            if (unread.length === 0) return;
+            
+            // Mark all quickly in UI
+            notificationsStore.forEach(n => n.is_read = true);
+            renderNotifications(); // update UI (badge & color) immediately
+
+            for (const n of unread) {
+                try {
+                    await Auth.authFetch(API.FARMER_READ_NOTIFICATION(n.id), { method: 'PUT' });
+                } catch(e) {}
+            }
+        }
+
+        async function deleteFarmerNotification(id) {
+            const confirmed = await Modal.confirm('এই নোটিফিকেশনটি কি ডিলিট করতে চান?', 'ডিলিট করুন', 'danger');
+            if(!confirmed) return;
+            try {
+                const res = await Auth.authFetch(API.FARMER_DELETE_NOTIFICATION(id), { method: 'DELETE' });
+                if (!res.ok) throw new Error();
+                Toast.success('নোটিফিকেশন ডিলিট হয়েছে');
+                notificationsStore = notificationsStore.filter(n => n.id !== id);
+                renderNotifications();
+            } catch (err) {
+                Toast.error('ডিলিট করতে সমস্যা হয়েছে');
+            }
         }
 
         // ===== PRODUCTS =====
@@ -718,6 +991,7 @@
             }
         }
 
+
         // ===== PROFILE =====
         async function loadFarmerProfile() {
             try {
@@ -725,9 +999,35 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error();
 
+                // প্রোফাইল পিকচার আপলোড সেকশনে দেখানো
+                const picEl = document.getElementById('farmerPicDisplay');
+                if (picEl) {
+                    if (data.has_profile_picture) {
+                        picEl.outerHTML = `<img id="farmerPicDisplay" class="profile-pic-avatar" src="${API.FARMER_PROFILE_PICTURE(farmerId)}?t=${Date.now()}" alt="Profile">`;
+                    } else {
+                        picEl.className = 'profile-pic-initials';
+                        picEl.textContent = data.name ? data.name.charAt(0).toUpperCase() : '?';
+                    }
+                }
+
+                // Navbar avatar update
+                const navAvatarBtn = document.getElementById('userAvatar');
+                if (navAvatarBtn) {
+                    if (data.has_profile_picture) {
+                        navAvatarBtn.innerHTML = `<img src="${API.FARMER_PROFILE_PICTURE(farmerId)}?t=${Date.now()}" alt="${data.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`;
+                    } else {
+                        navAvatarBtn.innerHTML = `<span id="userInitial">${data.name ? data.name.charAt(0).toUpperCase() : '?'}</span>`;
+                    }
+                }
+
+                // Profile card এ picture দেখানো
+                const avatarHtml = data.has_profile_picture
+                    ? `<img src="${API.FARMER_PROFILE_PICTURE(farmerId)}?t=${Date.now()}" alt="${data.name}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #34d399;box-shadow:0 4px 16px rgba(34,197,94,0.2);">`
+                    : `<div class="profile-avatar-lg">${data.name ? data.name.charAt(0) : '?'}</div>`;
+
                 document.getElementById('profileContent').innerHTML = `
                     <div class="profile-card">
-                        <div class="profile-avatar-lg">${data.name ? data.name.charAt(0) : '?'}</div>
+                        ${avatarHtml}
                         <div class="profile-details">
                             <h2>${data.name}</h2>
                             <span class="profile-role">🧑‍🌾 কৃষক</span>
@@ -772,6 +1072,92 @@
                 document.getElementById('profileContent').innerHTML = `<div class="empty-state"><h3>প্রোফাইল লোড ব্যর্থ</h3></div>`;
             }
         }
+
+        // ===== Crop Modal Logic (Farmer) =====
+        let farmerCropper = null;
+
+        function uploadFarmerProfilePic(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                Toast.error('ছবি সর্বোচ্চ ৫MB হতে পারবে!');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const modal = document.getElementById('farmerCropModal');
+                const img = document.getElementById('farmerCropImage');
+                img.src = e.target.result;
+                modal.style.display = 'flex';
+
+                if (farmerCropper) { farmerCropper.destroy(); farmerCropper = null; }
+
+                farmerCropper = new Cropper(img, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.9,
+                    cropBoxMovable: false,
+                    cropBoxResizable: false,
+                    toggleDragModeOnDblclick: false,
+                    background: false,
+                    guides: false,
+                    center: true,
+                    highlight: false,
+                    preview: '#farmerCropPreviewWrap',
+                    ready() {
+                        const previewEl = document.querySelector('#farmerCropPreviewWrap .cropper-preview');
+                        if (previewEl) previewEl.style.borderRadius = '50%';
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function closeFarmerCropModal() {
+            document.getElementById('farmerCropModal').style.display = 'none';
+            if (farmerCropper) { farmerCropper.destroy(); farmerCropper = null; }
+        }
+
+        async function confirmFarmerCrop() {
+            if (!farmerCropper) return;
+            const canvas = farmerCropper.getCroppedCanvas({ width: 400, height: 400, imageSmoothingQuality: 'high' });
+            canvas.toBlob(async (blob) => {
+                closeFarmerCropModal();
+                const uploading = document.getElementById('farmerPicUploading');
+                uploading.classList.add('show');
+                try {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'avatar.webp');
+                    const res = await Auth.authFetch(API.FARMER_PROFILE_PICTURE_UPLOAD(farmerId), {
+                        method: 'POST', body: formData, headers: {}
+                    });
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.detail || 'আপলোড ব্যর্থ');
+                    const ts = Date.now();
+                    const picEl2 = document.getElementById('farmerPicDisplay');
+                    const newImg = document.createElement('img');
+                    newImg.id = 'farmerPicDisplay';
+                    newImg.className = 'profile-pic-avatar';
+                    newImg.src = API.FARMER_PROFILE_PICTURE(farmerId) + '?t=' + ts;
+                    newImg.alt = 'Profile';
+                    picEl2.replaceWith(newImg);
+                    const navBtn = document.getElementById('userAvatar');
+                    if (navBtn) navBtn.innerHTML = `<img src="${API.FARMER_PROFILE_PICTURE(farmerId)}?t=${ts}" alt="Profile" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`;
+                    Toast.success('প্রোফাইল ছবি আপডেট হয়েছে! 📷');
+                    loadFarmerProfile();
+                } catch (err) {
+                    Toast.error(err.message);
+                } finally {
+                    uploading.classList.remove('show');
+                }
+            }, 'image/webp', 0.88);
+        }
+
 
         async function handleProfileUpdate(e) {
             e.preventDefault();

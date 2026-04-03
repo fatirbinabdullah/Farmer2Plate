@@ -243,11 +243,16 @@ textarea {
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform var(--transition-fast);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    overflow: hidden;  /* profile picture গোলাকারে clip করার জন্য */
+    padding: 0;
+    border: 2.5px solid transparent;
 }
 
 .user-avatar:hover {
-    transform: scale(1.05);
+    transform: scale(1.08);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    border-color: var(--primary-400);
 }
 
 .user-dropdown {
