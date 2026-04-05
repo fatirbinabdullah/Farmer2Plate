@@ -112,7 +112,7 @@ const Modal = {
             overlay.querySelector('#modalCancel').onclick = () => close(null);
             overlay.querySelector('#modalConfirm').onclick = handleConfirm;
             overlay.querySelector('#modalInput').onkeyup = (e) => { if(e.key === 'Enter') handleConfirm(); };
-            overlay.onclick = (e) => { if(e.target === overlay) close(null); }; // বাইরে ক্লিক করলে বাতিল
+            overlay.onclick = (e) => { if(e.target === overlay) close(null); };
         });
     }
 };
