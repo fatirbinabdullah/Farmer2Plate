@@ -1,6 +1,6 @@
-// ===== API CONFIGURATION (এপিআই লিংক সেটিং) =====
+// ===== API CONFIGURATION =====
 const API_BASE_URL = 'https://backend-farmer2plate.onrender.com';
-// const API_BASE_URL = 'http://192.168.1.7:8000'; // ব্যাকএন্ডের ঠিকানা
+// const API_BASE_URL = 'http://192.168.1.7:8000';
 
 // All type of API List for easy to use not to type again and again
 const API = {
@@ -40,7 +40,7 @@ const API = {
     ADMIN_ORDERS: `${API_BASE_URL}/admin/orders`,
     ADMIN_UPDATE_ORDER_STATUS: (id) => `${API_BASE_URL}/admin/order/${id}/status`,
 
-    // প্রোডাক্টের জন্য API
+    // product API
     PRODUCT_ADD: `${API_BASE_URL}/product/add`,
     PRODUCT_UPDATE: (id) => `${API_BASE_URL}/product/update/${id}`,
     PRODUCT_DELETE: (id) => `${API_BASE_URL}/product/delete/${id}`,
@@ -49,15 +49,13 @@ const API = {
     PRODUCT_IMAGE: (imageId) => `${API_BASE_URL}/product/image/${imageId}`,
     PRODUCT_DELETE_IMAGE: (imageId) => `${API_BASE_URL}/product/image/${imageId}`,
 
-    // অর্ডারের জন্য API
+    // order API
     ORDER_PLACE: `${API_BASE_URL}/order/place`,
     ORDER_MY_ORDERS: `${API_BASE_URL}/order/my-orders`,
 };
 
-// প্রোডাক্টের ছবি না থাকলে সাময়িকভাবে আইকন দেখানোর জন্য ইমোজি লিস্ট
 const PRODUCT_EMOJIS = ['🥬', '🍅', '🥕', '🌽', '🍆', '🥒', '🫑', '🥦', '🧅', '🧄', '🥔', '🍠', '🥭', '🍌', '🍊', '🍋', '🍎', '🍇', '🍉', '🍓', '🫐', '🥥', '🌾', '🌿', '🍂', '🍃'];
 
-// প্রোডাক্টের নামের উপর ভিত্তি করে অটোমেটিক একটা ইমোজি সিলেক্ট করার ফাংশন
 function getProductEmoji(name) {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
