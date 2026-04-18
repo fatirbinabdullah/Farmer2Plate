@@ -1,5 +1,5 @@
 // ===== API CONFIGURATION =====
-const API_BASE_URL = 'https://backend-farmer2plate.onrender.com';
+const API_BASE_URL = 'https://backend-farmer2-plate.vercel.app';
 // const API_BASE_URL = 'http://192.168.1.7:8000';
 
 // All type of API List for easy to use not to type again and again
